@@ -1,0 +1,34 @@
+-- Path convention: profile-photos/{user_id}/{filename}
+-- storage.foldername(name) returns the path as an array; [1] is the first segment (user_id).
+
+create policy "profile_photos_select_own"
+  on storage.objects for select
+  to authenticated
+  using (
+    bucket_id = 'profile-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "profile_photos_insert_own"
+  on storage.objects for insert
+  to authenticated
+  with check (
+    bucket_id = 'profile-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "profile_photos_update_own"
+  on storage.objects for update
+  to authenticated
+  using (
+    bucket_id = 'profile-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "profile_photos_delete_own"
+  on storage.objects for delete
+  to authenticated
+  using (
+    bucket_id = 'profile-photos'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
