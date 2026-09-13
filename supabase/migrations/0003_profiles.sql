@@ -1,8 +1,8 @@
 create table profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references auth.users(id) on delete cascade,
-  name text not null,
-  age integer not null check (age >= 18),
+  name text,
+  age integer check (age >= 18),
   main_photo text, -- path inside the "profile-photos" bucket, not a full URL
   partner_preference_id smallint references partner_preferences(id),
   instagram text,

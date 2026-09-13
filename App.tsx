@@ -1,12 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+
+import { AuthProvider } from './src/features/auth/AuthProvider';
+import { AuthGate } from './src/features/auth/AuthGate';
 
 export default function App() {
+  const { t } = useTranslation();
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Corazones</Text>
-      <StatusBar style="auto" />
-    </View>
+    <AuthProvider>
+      <View style={styles.container}>
+        <Text style={styles.title}>{t('company.title')}</Text>
+        <AuthGate />
+        <StatusBar style="auto" />
+      </View>
+    </AuthProvider>
   );
 }
 

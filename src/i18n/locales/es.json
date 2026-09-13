@@ -1,4 +1,16 @@
 {
+	"company": {
+		"title": "Corazones",
+		"email": "corazones.arg@gmail.com"
+	},
+	"common": {
+		"loading": "Cargando..."
+	},
+	"auth": {
+		"signInWithGoogle": "Ingresar con Google",
+		"signOut": "Cerrar sesión",
+		"genericError": "Ocurrió un error al iniciar sesión. Probá de nuevo."
+	},
 	"partnerPreferences": {
 		"men": "Hombres",
 		"women": "Mujeres",

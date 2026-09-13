@@ -2,14 +2,18 @@
   "expo": {
     "name": "Corazones",
     "slug": "corazones-mobile",
+    "owner": "corazonesargs-team",
+    "scheme": "corazones",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.corazones.mobile"
     },
     "android": {
+      "package": "com.corazones.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -22,7 +26,18 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-localization"
-    ]
+      "expo-localization",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.486263315165-skaafamiks269iahinlj7ct6b0ktnr6b"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "79cfdf08-0b89-4f83-a8a1-618c670e7402"
+      }
+    }
   }
 }
