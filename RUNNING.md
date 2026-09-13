@@ -74,3 +74,25 @@ Solo cuando cambia algo **nativo**:
 - Se toca algo dentro de `ios/` o `android/`.
 
 Para cambios normales de JS/TS, `npm run android:fast` / `npm run ios:fast` alcanza.
+
+## Cuándo limpiar caché (`clean:*`)
+
+`npm run android` / `npm run ios` normales **no** limpian caché ni reinstalan la app —
+son rápidos a propósito. Si después de cambiar algo nativo (los mismos casos de arriba)
+la app sigue mostrando comportamiento viejo, o ves errores raros de Metro/Gradle/Xcode
+que no tienen que ver con tu código, corré el clean correspondiente **antes** de
+recompilar:
+
+```
+npm run clean:android && npm run android
+npm run clean:ios && npm run ios
+```
+
+- `clean:metro` — borra caché de Metro/Haste y `.expo`. Rápido, no toca devices.
+- `clean:android` — clean de Gradle + desinstala la app del device/emulador conectado.
+- `clean:ios` — borra `ios/build` y el DerivedData de Xcode del proyecto + desinstala
+  del simulador activo.
+- `clean:all` — todo lo anterior más `node_modules` limpio (`npm install` de nuevo).
+
+Desinstalar la app borra la sesión y los permisos ya otorgados (fotos, etc.) — por eso
+esto no corre automáticamente en cada `npm run ios`/`android`, solo cuando hace falta.

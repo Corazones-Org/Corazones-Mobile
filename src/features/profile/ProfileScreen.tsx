@@ -1,20 +1,24 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { Button, Image, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import type { PartnerPreference, ProfileUpdate } from '@/types/profile';
 
 import { getPartnerPreferences, getProfilePhotoUrl } from './api';
+import { profileFormDefaults, profileFormSchema, type ProfileFormValues } from './schema';
 import { useProfile } from './useProfile';
 
 export function ProfileScreen() {
   const { t } = useTranslation();
   const { profile, loading, error: loadError, save, pickAndUploadPhoto } = useProfile();
 
-  const [name, setName] = useState(profile?.name ?? '');
-  const [age, setAge] = useState(profile?.age != null ? String(profile.age) : '');
-  const [instagram, setInstagram] = useState(profile?.instagram ?? '');
-  const [partnerPreferenceId, setPartnerPreferenceId] = useState(profile?.partnerPreferenceId ?? null);
+  const { control, handleSubmit, reset } = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileFormSchema),
+    defaultValues: profileFormDefaults,
+  });
+
   const [preferences, setPreferences] = useState<PartnerPreference[]>([]);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -23,6 +27,16 @@ export function ProfileScreen() {
   useEffect(() => {
     getPartnerPreferences().then(({ preferences: loaded }) => setPreferences(loaded));
   }, []);
+
+  useEffect(() => {
+    if (!profile) return;
+    reset({
+      name: profile.name ?? '',
+      age: profile.age != null ? String(profile.age) : '',
+      instagram: profile.instagram ?? '',
+      partnerPreferenceId: profile.partnerPreferenceId,
+    });
+  }, [profile, reset]);
 
   useEffect(() => {
     if (!profile?.mainPhoto) {
@@ -40,15 +54,15 @@ export function ProfileScreen() {
     return <Text>{t('profile.loadError')}</Text>;
   }
 
-  const handleSave = async () => {
+  const onSubmit = async (values: ProfileFormValues) => {
     setSaveError(null);
     setSaveSuccess(false);
 
     const update: ProfileUpdate = {
-      name,
-      age: age ? Number(age) : null,
-      instagram,
-      partnerPreferenceId,
+      name: values.name,
+      age: values.age === '' ? null : Number(values.age),
+      instagram: values.instagram,
+      partnerPreferenceId: values.partnerPreferenceId,
     };
 
     const { error } = await save(update);
@@ -75,27 +89,51 @@ export function ProfileScreen() {
       <Button title={t('profile.choosePhoto')} onPress={handlePickPhoto} />
 
       <Text>{t('profile.name')}</Text>
-      <TextInput value={name} onChangeText={setName} />
+      <Controller
+        control={control}
+        name="name"
+        render={({ field: { value, onChange } }) => (
+          <TextInput value={value} onChangeText={onChange} />
+        )}
+      />
 
       <Text>{t('profile.age')}</Text>
-      <TextInput value={age} onChangeText={setAge} keyboardType="numeric" />
+      <Controller
+        control={control}
+        name="age"
+        render={({ field: { value, onChange } }) => (
+          <TextInput value={value} onChangeText={onChange} keyboardType="numeric" />
+        )}
+      />
 
       <Text>{t('profile.instagram')}</Text>
-      <TextInput value={instagram} onChangeText={setInstagram} />
+      <Controller
+        control={control}
+        name="instagram"
+        render={({ field: { value, onChange } }) => (
+          <TextInput value={value} onChangeText={onChange} />
+        )}
+      />
 
       <Text>{t('profile.partnerPreference')}</Text>
-      <View>
-        {preferences.map((preference) => (
-          <Button
-            key={preference.id}
-            title={t(`partnerPreferences.${preference.code}`)}
-            onPress={() => setPartnerPreferenceId(preference.id)}
-            color={partnerPreferenceId === preference.id ? undefined : '#ccc'}
-          />
-        ))}
-      </View>
+      <Controller
+        control={control}
+        name="partnerPreferenceId"
+        render={({ field: { value, onChange } }) => (
+          <View>
+            {preferences.map((preference) => (
+              <Button
+                key={preference.id}
+                title={t(`partnerPreferences.${preference.code}`)}
+                onPress={() => onChange(preference.id)}
+                color={value === preference.id ? undefined : '#ccc'}
+              />
+            ))}
+          </View>
+        )}
+      />
 
-      <Button title={t('profile.save')} onPress={handleSave} />
+      <Button title={t('profile.save')} onPress={handleSubmit(onSubmit)} />
 
       {saveError ? <Text>{saveError}</Text> : null}
       {saveSuccess ? <Text>{t('profile.saveSuccess')}</Text> : null}

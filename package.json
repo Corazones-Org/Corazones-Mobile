@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@hookform/resolvers": "^5.9.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.5",
     "@supabase/supabase-js": "^2.116.0",
@@ -16,8 +17,10 @@
     "jest": "~29.7.0",
     "jest-expo": "~57.0.5",
     "react": "19.2.3",
+    "react-hook-form": "^7.88.0",
     "react-i18next": "^17.0.13",
-    "react-native": "0.86.3"
+    "react-native": "0.86.3",
+    "zod": "^4.6.4"
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.0.1",
@@ -36,7 +39,11 @@
     "ios:device": "expo run:ios --device",
     "web": "expo start --web",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "clean:metro": "rm -rf \"${TMPDIR:-/tmp}\"/metro-* \"${TMPDIR:-/tmp}\"/haste-map-* .expo",
+    "clean:android": "npm run clean:metro && (cd android && ./gradlew clean) && adb uninstall com.corazones.mobile || true",
+    "clean:ios": "npm run clean:metro && rm -rf ios/build && rm -rf ~/Library/Developer/Xcode/DerivedData/corazones* && (xcrun simctl uninstall booted com.corazones.mobile || true)",
+    "clean:all": "npm run clean:android && npm run clean:ios && rm -rf node_modules && npm install"
   },
   "private": true,
   "jest": {

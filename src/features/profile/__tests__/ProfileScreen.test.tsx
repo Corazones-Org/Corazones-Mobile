@@ -89,6 +89,43 @@ describe('ProfileScreen', () => {
     expect(getByDisplayValue('tomas')).toBeTruthy();
   });
 
+  it('precarga el nombre (ej. el de Google) cuando el perfil llega después del primer render', async () => {
+    mockUseProfile.mockReturnValue({
+      profile: null,
+      loading: true,
+      error: null,
+      save: mockSave,
+      pickAndUploadPhoto: mockPickAndUploadPhoto,
+    });
+
+    const { getByDisplayValue, rerender } = await render(<ProfileScreen />);
+
+    mockUseProfile.mockReturnValue({
+      profile: {
+        id: 'p1',
+        userId: 'u1',
+        name: 'Tomas Agustin Padilla',
+        age: null,
+        mainPhoto: null,
+        partnerPreferenceId: null,
+        instagram: null,
+        profileComplete: false,
+      },
+      loading: false,
+      error: null,
+      save: mockSave,
+      pickAndUploadPhoto: mockPickAndUploadPhoto,
+    });
+
+    await act(async () => {
+      rerender(<ProfileScreen />);
+    });
+
+    await waitFor(() => {
+      expect(getByDisplayValue('Tomas Agustin Padilla')).toBeTruthy();
+    });
+  });
+
   it('guarda los cambios al tocar Guardar', async () => {
     const { getByText, getByDisplayValue } = await render(<ProfileScreen />);
 
