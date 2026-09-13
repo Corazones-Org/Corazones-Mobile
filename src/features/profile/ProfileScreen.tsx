@@ -9,7 +9,7 @@ import { useProfile } from './useProfile';
 
 export function ProfileScreen() {
   const { t } = useTranslation();
-  const { profile, loading, save, pickAndUploadPhoto } = useProfile();
+  const { profile, loading, error: loadError, save, pickAndUploadPhoto } = useProfile();
 
   const [name, setName] = useState(profile?.name ?? '');
   const [age, setAge] = useState(profile?.age != null ? String(profile.age) : '');
@@ -32,8 +32,12 @@ export function ProfileScreen() {
     getProfilePhotoUrl(profile.mainPhoto).then(({ url }) => setPhotoUrl(url));
   }, [profile?.mainPhoto]);
 
-  if (loading || !profile) {
+  if (loading) {
     return <Text>{t('common.loading')}</Text>;
+  }
+
+  if (loadError || !profile) {
+    return <Text>{t('profile.loadError')}</Text>;
   }
 
   const handleSave = async () => {

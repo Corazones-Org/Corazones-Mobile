@@ -66,6 +66,21 @@ describe('ProfileScreen', () => {
     expect(getByText('Cargando...')).toBeTruthy();
   });
 
+  it('muestra un error en vez de quedar cargando para siempre si falla la carga del perfil', async () => {
+    mockUseProfile.mockReturnValue({
+      profile: null,
+      loading: false,
+      error: 'infinite recursion detected in policy for relation "time_slot_registrations"',
+      save: mockSave,
+      pickAndUploadPhoto: mockPickAndUploadPhoto,
+    });
+
+    const { getByText, queryByText } = await render(<ProfileScreen />);
+
+    expect(getByText('No se pudo cargar tu perfil. Probá de nuevo.')).toBeTruthy();
+    expect(queryByText('Cargando...')).toBeNull();
+  });
+
   it('precarga los campos con los datos del perfil existente', async () => {
     const { getByDisplayValue } = await render(<ProfileScreen />);
 

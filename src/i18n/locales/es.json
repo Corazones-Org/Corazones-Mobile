@@ -25,6 +25,7 @@
 		"choosePhoto": "Elegir foto",
 		"save": "Guardar",
 		"saveError": "No se pudo guardar el perfil. Probá de nuevo.",
-		"saveSuccess": "Perfil guardado."
+		"saveSuccess": "Perfil guardado.",
+		"loadError": "No se pudo cargar tu perfil. Probá de nuevo."
 	}
 }
