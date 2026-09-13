@@ -14,9 +14,14 @@ export function AuthGate() {
 
   const handleSignIn = async () => {
     setError(null);
-    const { error: signInError } = await signIn();
-    if (signInError) {
-      console.error('Google sign-in error:', signInError);
+    try {
+      const { error: signInError } = await signIn();
+      if (signInError) {
+        console.error('Google sign-in error:', signInError);
+        setError(t('auth.genericError'));
+      }
+    } catch (unexpectedError) {
+      console.error('Unexpected sign-in error:', unexpectedError);
       setError(t('auth.genericError'));
     }
   };
