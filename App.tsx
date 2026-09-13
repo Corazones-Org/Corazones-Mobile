@@ -2,8 +2,8 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { AuthProvider } from './src/features/auth/AuthProvider';
-import { AuthGate } from './src/features/auth/AuthGate';
+import { AuthProvider } from '@/features/auth/AuthProvider';
+import { AuthGate } from '@/features/auth/AuthGate';
 
 export default function App() {
   const { t } = useTranslation();

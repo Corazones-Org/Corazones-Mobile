@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react-native';
 
-import './src/i18n';
+import '@/i18n';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')

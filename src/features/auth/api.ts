@@ -1,7 +1,7 @@
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin';
 import type { AuthError } from '@supabase/supabase-js';
 
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 
 export async function signInWithGoogle(): Promise<{
   error: AuthError | { message: string } | null;

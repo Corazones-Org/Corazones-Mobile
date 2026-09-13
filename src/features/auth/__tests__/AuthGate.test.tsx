@@ -1,6 +1,6 @@
 import { render, fireEvent } from '@testing-library/react-native';
 
-import '../../../i18n';
+import '@/i18n';
 
 const mockSignIn = jest.fn();
 const mockUseGoogleSignIn = jest.fn();
@@ -14,11 +14,11 @@ jest.mock('../AuthProvider', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
-jest.mock('../auth', () => ({
+jest.mock('../api', () => ({
   signOut: jest.fn(),
 }));
 
-import { signOut } from '../auth';
+import { signOut } from '../api';
 import { AuthGate } from '../AuthGate';
 
 describe('AuthGate', () => {

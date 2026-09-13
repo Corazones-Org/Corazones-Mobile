@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { signOut } from './auth';
+import { signOut } from './api';
 import { useAuth } from './AuthProvider';
 import { useGoogleSignIn } from './useGoogleSignIn';
 

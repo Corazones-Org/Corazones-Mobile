@@ -3,7 +3,7 @@ import { Text } from 'react-native';
 
 let onAuthStateChangeCallback: ((event: string, session: unknown) => void) | undefined;
 
-jest.mock('../../../lib/supabase', () => ({
+jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('../../../lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '../../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { AuthProvider, useAuth } from '../AuthProvider';
 
 function StatusProbe() {

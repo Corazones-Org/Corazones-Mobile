@@ -11,7 +11,7 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
   isSuccessResponse: (response: { type: string }) => response.type === 'success',
 }));
 
-jest.mock('../../../lib/supabase', () => ({
+jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       signInWithIdToken: jest.fn(),
@@ -20,8 +20,8 @@ jest.mock('../../../lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '../../../lib/supabase';
-import { signInWithGoogle, signOut } from '../auth';
+import { supabase } from '@/lib/supabase';
+import { signInWithGoogle, signOut } from '../api';
 
 describe('signInWithGoogle', () => {
   beforeEach(() => {
