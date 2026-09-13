@@ -38,6 +38,15 @@
         {
           "photosPermission": "Permití el acceso a tus fotos para elegir tu foto de perfil."
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
       ]
     ],
     "extra": {
