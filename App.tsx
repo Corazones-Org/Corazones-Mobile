@@ -4,17 +4,27 @@ import { useTranslation } from 'react-i18next';
 
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { AuthGate } from '@/features/auth/AuthGate';
+import { useAuth } from '@/features/auth/AuthProvider';
+import { ProfileScreen } from '@/features/profile/ProfileScreen';
 
-export default function App() {
+function Root() {
   const { t } = useTranslation();
+  const { status } = useAuth();
 
   return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{t('company.title')}</Text>
+      {status === 'signedIn' ? <ProfileScreen /> : null}
+      <AuthGate />
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+export default function App() {
+  return (
     <AuthProvider>
-      <View style={styles.container}>
-        <Text style={styles.title}>{t('company.title')}</Text>
-        <AuthGate />
-        <StatusBar style="auto" />
-      </View>
+      <Root />
     </AuthProvider>
   );
 }

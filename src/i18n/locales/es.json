@@ -15,5 +15,16 @@
 		"men": "Hombres",
 		"women": "Mujeres",
 		"everyone": "Todos"
+	},
+	"profile": {
+		"title": "Tu perfil",
+		"name": "Nombre",
+		"age": "Edad",
+		"instagram": "Instagram",
+		"partnerPreference": "Preferencia de pareja",
+		"choosePhoto": "Elegir foto",
+		"save": "Guardar",
+		"saveError": "No se pudo guardar el perfil. Probá de nuevo.",
+		"saveSuccess": "Perfil guardado."
 	}
 }
