@@ -14,8 +14,9 @@
     },
     "android": {
       "package": "com.corazones.mobile",
+      "backgroundColor": "#CF3B57",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#CE455D",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -26,11 +27,21 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withIosSceneLifecycle",
       "expo-localization",
       [
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.486263315165-skaafamiks269iahinlj7ct6b0ktnr6b"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#CF3B57",
+          "imageWidth": 288,
+          "resizeMode": "contain"
         }
       ]
     ],
