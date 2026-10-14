@@ -1,20 +1,43 @@
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
-import { AuthProvider } from '@/features/auth/AuthProvider';
+import { AuthProvider, useAuth } from '@/features/auth/AuthProvider';
 import { AuthGate } from '@/features/auth/AuthGate';
+import { WelcomeScreen } from '@/features/welcome/WelcomeScreen';
 
-export default function App() {
+// Keep the native splash until WelcomeScreen (or the signed-in screen) is on screen.
+SplashScreen.preventAutoHideAsync();
+
+// Placeholder for the signed-in experience until navigation / Profile land.
+function SignedIn() {
   const { t } = useTranslation();
 
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>{t('company.title')}</Text>
+      <AuthGate />
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+function Root() {
+  const { status } = useAuth();
+
+  return status === 'signedIn' ? <SignedIn /> : <WelcomeScreen />;
+}
+
+export default function App() {
   return (
     <AuthProvider>
-      <View style={styles.container}>
-        <Text style={styles.title}>{t('company.title')}</Text>
-        <AuthGate />
-        <StatusBar style="auto" />
-      </View>
+      <Root />
     </AuthProvider>
   );
 }

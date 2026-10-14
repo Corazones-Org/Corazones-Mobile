@@ -14,6 +14,7 @@
     },
     "android": {
       "package": "com.corazones.mobile",
+      "backgroundColor": "#CF3B57",
       "adaptiveIcon": {
         "backgroundColor": "#CE455D",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -32,6 +33,15 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.486263315165-skaafamiks269iahinlj7ct6b0ktnr6b"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "backgroundColor": "#CF3B57",
+          "imageWidth": 288,
+          "resizeMode": "contain"
         }
       ]
     ],
