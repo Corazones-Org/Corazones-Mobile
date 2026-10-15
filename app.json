@@ -44,7 +44,13 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Corazones necesita acceder a tus fotos para que elijas las de tu perfil."
+        }
+      ]
     ],
     "extra": {
       "eas": {

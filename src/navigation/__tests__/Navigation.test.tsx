@@ -4,12 +4,19 @@ import '@/i18n';
 
 type MockAuth = { status: 'loading' | 'signedIn' | 'signedOut'; session: object | null };
 
-const signedIn: MockAuth = { status: 'signedIn', session: {} };
+const signedIn: MockAuth = { status: 'signedIn', session: { user: { id: 'user-1' } } };
 const signedOut: MockAuth = { status: 'signedOut', session: null };
+
+type MockProfileState =
+  | { status: 'loading'; profile: null }
+  | { status: 'error'; profile: null }
+  | { status: 'ready'; profile: ReturnType<typeof makeProfile> };
 
 let mockInitialAuth: MockAuth;
 let mockSetAuth: (auth: MockAuth) => void;
-let mockUseMyProfile: jest.Mock;
+let mockInitialProfile: MockProfileState;
+let mockSetProfile: (state: MockProfileState) => void;
+let mockReload: jest.Mock;
 
 // Stateful stand-in for the real provider, so sign-in/sign-out can change the session and the
 // navigator reacts to it.
@@ -28,7 +35,7 @@ jest.mock('@/features/auth/AuthProvider', () => {
 
 jest.mock('@/features/auth/api', () => ({
   signInWithGoogle: jest.fn(async () => {
-    mockSetAuth({ status: 'signedIn', session: {} });
+    mockSetAuth({ status: 'signedIn', session: { user: { id: 'user-1' } } });
     return { error: null };
   }),
   signOut: jest.fn(async () => {
@@ -36,9 +43,31 @@ jest.mock('@/features/auth/api', () => ({
   }),
 }));
 
-jest.mock('@/features/profile/useMyProfile', () => ({
-  useMyProfile: () => mockUseMyProfile(),
+// Stateful stand-in for the profile provider, so the gate can react to the profile changing
+// (for example when onboarding finishes and the profile is reloaded).
+jest.mock('@/features/profile/ProfileProvider', () => {
+  const React = require('react');
+  const Context = React.createContext(null);
+  return {
+    ProfileProvider: ({ children }: { children: React.ReactNode }) => {
+      const [state, setState] = React.useState(mockInitialProfile);
+      mockSetProfile = setState;
+      return React.createElement(Context.Provider, { value: state }, children);
+    },
+    useProfile: () => ({ ...React.useContext(Context), reload: mockReload }),
+  };
+});
+
+jest.mock('@/features/onboarding/api', () => ({
+  fetchMyPhotos: jest.fn().mockResolvedValue([]),
+  fetchCatalogs: jest.fn().mockResolvedValue({ genders: [], partnerPreferences: [] }),
+  photoUrl: (path: string) => path,
+  uploadProfilePhoto: jest.fn(),
+  removeProfilePhoto: jest.fn(),
+  saveOnboardingDetails: jest.fn(),
 }));
+
+jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
 
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: { configure: jest.fn(), hasPlayServices: jest.fn().mockResolvedValue(true) },
@@ -51,33 +80,50 @@ jest.mock('expo-splash-screen', () => ({
 
 import * as SplashScreen from 'expo-splash-screen';
 
+import { ToastProvider } from '@/components/Toast/ToastProvider';
+import { signOut } from '@/features/auth/api';
 import { AuthProvider } from '@/features/auth/AuthProvider';
+import { ProfileProvider } from '@/features/profile/ProfileProvider';
 import { Navigation } from '../Navigation';
 
-const profile = {
-  name: 'Ana',
-  age: null,
-  bio: null,
-  complete: false,
-  genderCode: null,
-  partnerPreferenceCode: null,
-  photoPaths: [],
-  interests: [],
-};
+function makeProfile(overrides: Record<string, unknown> = {}) {
+  return {
+    name: 'Ana',
+    age: null,
+    bio: null,
+    complete: false,
+    onboardingComplete: true,
+    genderCode: null,
+    partnerPreferenceCode: null,
+    photoPaths: [] as string[],
+    interests: [] as { code: string; labels: Record<string, string> }[],
+    ...overrides,
+  };
+}
 
-function renderNavigation(auth: MockAuth) {
+const readyProfile = (overrides: Record<string, unknown> = {}): MockProfileState => ({
+  status: 'ready',
+  profile: makeProfile(overrides),
+});
+
+function renderNavigation(auth: MockAuth, profileState: MockProfileState = readyProfile()) {
   mockInitialAuth = auth;
+  mockInitialProfile = profileState;
   return render(
-    <AuthProvider>
-      <Navigation />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <ProfileProvider>
+          <Navigation />
+        </ProfileProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 
 describe('Navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', reload: jest.fn(), profile });
+    mockReload = jest.fn();
   });
 
   it('mantiene la pantalla de bienvenida sin botón mientras carga la sesión', async () => {
@@ -114,14 +160,12 @@ describe('Navigation', () => {
     expect(screen.queryByTestId('welcome-screen')).toBeNull();
   });
 
-  it('carga el perfil recién al abrir la tab de perfil', async () => {
+  it('la tab de perfil muestra el perfil que ya cargó el gate', async () => {
     await renderNavigation(signedIn);
-    expect(mockUseMyProfile).not.toHaveBeenCalled();
 
     await fireEvent.press(screen.getByText('Perfil'));
 
     expect(await screen.findByText('Ana')).toBeTruthy();
-    expect(mockUseMyProfile).toHaveBeenCalled();
   });
 
   it('permite volver a la tab principal desde el perfil', async () => {
@@ -150,5 +194,77 @@ describe('Navigation', () => {
 
     expect(await screen.findByText('Continuar con Google')).toBeTruthy();
     expect(screen.queryByTestId('main-screen')).toBeNull();
+  });
+
+  describe('gate: onboarding o app', () => {
+    it('mantiene la bienvenida (sin botón) mientras carga el perfil de un usuario con sesión', async () => {
+      await renderNavigation(signedIn, { status: 'loading', profile: null });
+
+      expect(screen.getByTestId('welcome-screen')).toBeTruthy();
+      expect(screen.queryByText('Continuar con Google')).toBeNull();
+      expect(screen.queryByTestId('main-screen')).toBeNull();
+      expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
+
+    it('si no se pudo cargar el perfil avisa con un toast y vuelve al login, sin pantalla de error', async () => {
+      await renderNavigation(signedIn, { status: 'error', profile: null });
+
+      expect(await screen.findByText('No pudimos cargar tu perfil')).toBeTruthy();
+      expect(screen.getByText('Volvé a iniciar sesión.')).toBeTruthy();
+      expect(signOut).toHaveBeenCalledTimes(1);
+      expect(await screen.findByText('Continuar con Google')).toBeTruthy();
+      expect(screen.queryByText('Reintentar')).toBeNull();
+      expect(screen.queryByTestId('main-screen')).toBeNull();
+      expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
+
+    it('el aviso de error no aparece cuando el perfil carga bien', async () => {
+      await renderNavigation(signedIn, readyProfile());
+
+      expect(screen.queryByText('No pudimos cargar tu perfil')).toBeNull();
+      expect(signOut).not.toHaveBeenCalled();
+    });
+
+    it('con el onboarding incompleto manda al onboarding (paso de fotos) y no a la app', async () => {
+      await renderNavigation(signedIn, readyProfile({ onboardingComplete: false }));
+
+      expect(screen.getByTestId('photos-step')).toBeTruthy();
+      expect(screen.queryByTestId('main-screen')).toBeNull();
+      expect(screen.queryByText('Perfil')).toBeNull();
+    });
+
+    it('retoma el onboarding en el segundo paso si ya hay una foto guardada', async () => {
+      await renderNavigation(
+        signedIn,
+        readyProfile({ onboardingComplete: false, photoPaths: ['users/u/profile/a.webp'] })
+      );
+
+      expect(screen.getByTestId('details-step')).toBeTruthy();
+      expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
+
+    it('con el onboarding completo manda a la app', async () => {
+      await renderNavigation(signedIn, readyProfile({ onboardingComplete: true }));
+
+      expect(screen.getByTestId('main-screen')).toBeTruthy();
+      expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
+
+    it('al terminar el onboarding (el perfil se recarga) pasa solo a la app', async () => {
+      await renderNavigation(signedIn, readyProfile({ onboardingComplete: false }));
+      expect(screen.getByTestId('photos-step')).toBeTruthy();
+
+      await act(async () => mockSetProfile(readyProfile({ onboardingComplete: true })));
+
+      expect(await screen.findByTestId('main-screen')).toBeTruthy();
+      expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
+
+    it('sin sesión nunca muestra el onboarding, aunque haya un perfil cargado', async () => {
+      await renderNavigation(signedOut, readyProfile({ onboardingComplete: false }));
+
+      expect(screen.getByText('Continuar con Google')).toBeTruthy();
+      expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
   });
 });

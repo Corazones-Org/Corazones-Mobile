@@ -1,11 +1,11 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 
 import '@/i18n';
 
 let mockUseMyProfile: jest.Mock;
 
-jest.mock('../useMyProfile', () => ({
-  useMyProfile: () => mockUseMyProfile(),
+jest.mock('../ProfileProvider', () => ({
+  useProfile: () => mockUseMyProfile(),
 }));
 
 jest.mock('@/features/auth/SignOutButton', () => {
@@ -27,14 +27,6 @@ const profile = {
 };
 
 describe('ProfileScreen', () => {
-  it('muestra un loading mientras carga el perfil', async () => {
-    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'loading', profile: null });
-
-    const { getByText } = await render(<ProfileScreen />);
-
-    expect(getByText('Cargando...')).toBeTruthy();
-  });
-
   it('muestra los datos del perfil y el botón de cerrar sesión', async () => {
     mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
 
@@ -68,17 +60,5 @@ describe('ProfileScreen', () => {
     const { getAllByText } = await render(<ProfileScreen />);
 
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(5);
-  });
-
-  it('muestra el error y reintenta', async () => {
-    const reload = jest.fn();
-    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'error', profile: null, reload });
-
-    const { getByText } = await render(<ProfileScreen />);
-    expect(getByText('No pudimos cargar tu perfil.')).toBeTruthy();
-
-    await fireEvent.press(getByText('Reintentar'));
-
-    expect(reload).toHaveBeenCalled();
   });
 });

@@ -1,16 +1,16 @@
 import { StatusBar } from 'expo-status-bar';
-import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { SignOutButton } from '@/features/auth/SignOutButton';
 
-import { useMyProfile } from './useMyProfile';
+import { useProfile } from './ProfileProvider';
 
 // Structural placeholder for the Profile tab: shows the profile that was created at registration.
 // The tab header supplies the title; real UI and editing come later.
 export function ProfileScreen() {
   const { t, i18n } = useTranslation();
-  const { status, profile, reload } = useMyProfile();
+  const { profile } = useProfile();
 
   const empty = t('profile.empty');
 
@@ -41,15 +41,6 @@ export function ProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {status === 'loading' ? <Text>{t('common.loading')}</Text> : null}
-
-      {status === 'error' ? (
-        <View>
-          <Text>{t('profile.loadError')}</Text>
-          <Button title={t('profile.retry')} onPress={reload} />
-        </View>
-      ) : null}
-
       {rows.map(([field, value]) => (
         <View key={field} style={styles.row}>
           <Text style={styles.label}>{t(`profile.fields.${field}`)}</Text>

@@ -7,6 +7,11 @@ jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => ({ status: 'loading', session: null }),
 }));
 
+jest.mock('@/features/profile/ProfileProvider', () => ({
+  ProfileProvider: ({ children }: { children: React.ReactNode }) => children,
+  useProfile: () => ({ status: 'loading', profile: null, reload: jest.fn() }),
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
@@ -14,6 +19,10 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: { configure: jest.fn(), hasPlayServices: jest.fn().mockResolvedValue(true) },
 }));
+
+jest.mock('react-native-safe-area-context', () =>
+  require('react-native-safe-area-context/jest/mock').default
+);
 
 let mockFontsReady = true;
 
