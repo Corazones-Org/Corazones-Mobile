@@ -1,4 +1,6 @@
-import { render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import '@/i18n';
 
@@ -60,5 +62,19 @@ describe('ProfileScreen', () => {
     const { getAllByText } = await render(<ProfileScreen />);
 
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('deja lugar abajo para que el contenido se pueda desplazar por encima de la barra flotante', async () => {
+    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
+
+    await render(
+      <SafeAreaInsetsContext.Provider value={{ top: 47, left: 0, right: 0, bottom: 34 }}>
+        <ProfileScreen />
+      </SafeAreaInsetsContext.Provider>
+    );
+
+    const style = StyleSheet.flatten(screen.getByTestId('profile-scroll').props.contentContainerStyle);
+    // 34 (safe area) + 24 (gap) + 64 (bar) + 32 (air)
+    expect(style.paddingBottom).toBe(154);
   });
 });

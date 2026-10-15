@@ -1,19 +1,14 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { MainScreen } from '@/features/main/MainScreen';
 import { ProfileScreen } from '@/features/profile/ProfileScreen';
+import { MainTabBar } from './MainTabBar';
 import type { MainTabParamList } from './types';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
-
-// Placeholder glyphs until the final tab bar design defines the icon set.
-function TabIcon({ glyph }: { glyph: string }) {
-  return <Text style={{ fontSize: 20 }}>{glyph}</Text>;
-}
 
 // Tab bar shown to signed-in users. Tabs are lazy: a screen (and its data fetch) only mounts the
 // first time its tab is opened.
@@ -26,14 +21,13 @@ export function MainTabs() {
   }, []);
 
   return (
-    <Tab.Navigator>
+    <Tab.Navigator tabBar={(props) => <MainTabBar {...props} />}>
       <Tab.Screen
         name="Main"
         component={MainScreen}
         options={{
           title: t('company.title'),
           tabBarLabel: t('tabs.main'),
-          tabBarIcon: () => <TabIcon glyph="🏠" />,
         }}
       />
       <Tab.Screen
@@ -42,7 +36,6 @@ export function MainTabs() {
         options={{
           title: t('profile.title'),
           tabBarLabel: t('tabs.profile'),
-          tabBarIcon: () => <TabIcon glyph="👤" />,
         }}
       />
     </Tab.Navigator>

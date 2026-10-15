@@ -151,6 +151,32 @@ describe('Navigation', () => {
     expect(SplashScreen.hide).toHaveBeenCalled();
   });
 
+  it('las tabs son la barra líquida flotante, con las mismas dos pantallas de siempre', async () => {
+    await renderNavigation(signedIn);
+
+    expect(screen.getByTestId('liquid-tab-bar')).toBeTruthy();
+    expect(screen.getAllByRole('tab')).toHaveLength(2);
+    expect(screen.getByRole('tab', { name: 'Inicio', selected: true })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Perfil', selected: false })).toBeTruthy();
+    // Floats above the content instead of taking a row of the layout.
+    expect(screen.getByTestId('main-tab-bar-dock')).toHaveStyle({ position: 'absolute' });
+  });
+
+  it('tocar una tab de la barra líquida cambia de pantalla y marca la tab', async () => {
+    await renderNavigation(signedIn);
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Perfil' }));
+
+    expect(await screen.findByText('Ana')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Perfil', selected: true })).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Inicio', selected: false })).toBeTruthy();
+
+    await fireEvent.press(screen.getByRole('tab', { name: 'Inicio' }));
+
+    expect(await screen.findByTestId('main-screen')).toBeTruthy();
+    expect(screen.getByRole('tab', { name: 'Inicio', selected: true })).toBeTruthy();
+  });
+
   it('al autenticarse desde el ingreso pasa a la pantalla principal', async () => {
     await renderNavigation(signedOut);
 

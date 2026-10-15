@@ -48,7 +48,8 @@
 	},
 	"tabs": {
 		"main": "Inicio",
-		"profile": "Perfil"
+		"profile": "Perfil",
+		"navigation": "Navegación principal"
 	},
 	"main": {
 		"title": "Pantalla principal",

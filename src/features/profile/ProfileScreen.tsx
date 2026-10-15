@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
+import { useLiquidTabBarClearance } from '@/components/LiquidTabBar/clearance';
 import { SignOutButton } from '@/features/auth/SignOutButton';
 
 import { useProfile } from './ProfileProvider';
@@ -11,6 +12,8 @@ import { useProfile } from './ProfileProvider';
 export function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { profile } = useProfile();
+  // The tab bar floats over the screen: leave room so the last row scrolls clear of it.
+  const bottomClearance = useLiquidTabBarClearance();
 
   const empty = t('profile.empty');
 
@@ -40,7 +43,10 @@ export function ProfileScreen() {
     : [];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      testID="profile-scroll"
+      contentContainerStyle={[styles.container, { paddingBottom: bottomClearance }]}
+    >
       {rows.map(([field, value]) => (
         <View key={field} style={styles.row}>
           <Text style={styles.label}>{t(`profile.fields.${field}`)}</Text>

@@ -52,6 +52,18 @@ describe('design tokens', () => {
     expect(themes.dark.shadow.card.shadowColor).toBe('#000000');
   });
 
+  it('includes the liquid glass tokens used by the floating tab bar', () => {
+    expect(themes.light.colors.liquidFill).toBe('rgba(255, 255, 255, 0.58)');
+    expect(themes.light.colors.liquidLens).toBe('rgba(255, 45, 122, 0.14)');
+    expect(themes.dark.colors.liquidFill).toBe('rgba(42, 24, 34, 0.55)');
+    expect(themes.light.shadow.liquid).toMatchObject({
+      shadowColor: '#ff2d7a',
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.18,
+      shadowRadius: 15,
+    });
+  });
+
   it('keeps src/theme/tokens.ts in sync with design/tokens.json (run `npm run theme`)', () => {
     const json = JSON.parse(fs.readFileSync(path.join(root, 'design/tokens.json'), 'utf8'));
     const generated = fs.readFileSync(path.join(root, 'src/theme/tokens.ts'), 'utf8');

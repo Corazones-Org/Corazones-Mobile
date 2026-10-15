@@ -39,6 +39,10 @@ export const themes = {
       "scrim": "rgba(26, 15, 20, 0.62)",
       "glass": "rgba(255, 255, 255, 0.92)",
       "onPhoto": "#ffffff",
+      "liquidFill": "rgba(255, 255, 255, 0.58)",
+      "liquidEdge": "rgba(255, 255, 255, 0.75)",
+      "liquidShine": "rgba(255, 255, 255, 0.95)",
+      "liquidLens": "rgba(255, 45, 122, 0.14)",
       "focus": "#c8105a",
       "gradPrimaryStart": "#ff2d7a",
       "gradPrimaryEnd": "#b5179e",
@@ -69,6 +73,16 @@ export const themes = {
         "shadowOpacity": 0.3,
         "shadowRadius": 9,
         "elevation": 9
+      },
+      "liquid": {
+        "shadowColor": "#ff2d7a",
+        "shadowOffset": {
+          "width": 0,
+          "height": 10
+        },
+        "shadowOpacity": 0.18,
+        "shadowRadius": 15,
+        "elevation": 15
       },
       "float": {
         "shadowColor": "#1a0f14",
@@ -119,6 +133,10 @@ export const themes = {
       "scrim": "rgba(10, 5, 8, 0.72)",
       "glass": "rgba(42, 24, 34, 0.88)",
       "onPhoto": "#ffffff",
+      "liquidFill": "rgba(42, 24, 34, 0.55)",
+      "liquidEdge": "rgba(255, 255, 255, 0.14)",
+      "liquidShine": "rgba(255, 255, 255, 0.22)",
+      "liquidLens": "rgba(255, 45, 122, 0.26)",
       "focus": "#ff6fa6",
       "gradPrimaryStart": "#ff2d7a",
       "gradPrimaryEnd": "#b5179e",
@@ -149,6 +167,16 @@ export const themes = {
         "shadowOpacity": 0.35,
         "shadowRadius": 9,
         "elevation": 9
+      },
+      "liquid": {
+        "shadowColor": "#000000",
+        "shadowOffset": {
+          "width": 0,
+          "height": 10
+        },
+        "shadowOpacity": 0.55,
+        "shadowRadius": 15,
+        "elevation": 15
       },
       "float": {
         "shadowColor": "#000000",
