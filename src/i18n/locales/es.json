@@ -32,6 +32,7 @@
 			"gender": "Género",
 			"interestedIn": "Busco",
 			"bio": "Sobre mí",
+			"instagram": "Instagram",
 			"interests": "Intereses",
 			"photos": "Fotos",
 			"complete": "Perfil completo"
@@ -39,7 +40,43 @@
 		"yes": "Sí",
 		"no": "No",
 		"loadErrorTitle": "No pudimos cargar tu perfil",
-		"loadErrorMessage": "Volvé a iniciar sesión."
+		"loadErrorMessage": "Volvé a iniciar sesión.",
+		"edit": {
+			"title": "Editar perfil",
+			"action": "Editar perfil",
+			"photosHint": "Las fotos se guardan al momento.",
+			"lastPhoto": "Necesitás al menos una foto.",
+			"basicInfo": "Información básica",
+			"fields": {
+				"name": "Nombre",
+				"age": "Edad",
+				"bio": "Sobre mí",
+				"instagram": "Instagram"
+			},
+			"placeholders": {
+				"name": "Tu nombre",
+				"age": "Tu edad",
+				"bio": "Contanos algo sobre vos",
+				"instagram": "tu.usuario"
+			},
+			"preferences": "Preferencias",
+			"interests": {
+				"title": "Intereses",
+				"empty": "Elegí tus intereses",
+				"subtitle": "Seleccioná tus intereses (máx. {{max}}) · {{count}} elegidos",
+				"open": "Editar intereses",
+				"loadErrorTitle": "No pudimos cargar los intereses"
+			},
+			"errors": {
+				"nameRequired": "Ingresá tu nombre.",
+				"ageInvalid": "Ingresá una edad entre 18 y 99.",
+				"bioTooLong": "Tu descripción puede tener hasta 500 caracteres.",
+				"instagramInvalid": "Usá solo letras, números, puntos y guiones bajos."
+			},
+			"saveErrorTitle": "No pudimos guardar los cambios",
+			"tryAgain": "Probá de nuevo.",
+			"loadErrorTitle": "No pudimos cargar las opciones"
+		}
 	},
 	"partnerPreferences": {
 		"men": "Hombres",
@@ -67,6 +104,13 @@
 			"add": "Agregar foto",
 			"remove": "Eliminar foto",
 			"uploadFailed": "No se pudo subir",
+			"retry": "Reintentar"
+		},
+		"saveStatus": {
+			"saving": "Guardando…",
+			"saved": "Guardado",
+			"error": "No se pudo guardar",
+			"retryHint": "Tocá para reintentar",
 			"retry": "Reintentar"
 		}
 	},

@@ -3,6 +3,8 @@ export type RootStackParamList = {
   Welcome: undefined;
   Onboarding: undefined;
   MainTabs: undefined;
+  EditProfile: undefined;
+  EditInterests: undefined;
 };
 
 export type MainTabParamList = {

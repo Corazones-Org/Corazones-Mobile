@@ -67,6 +67,13 @@ jest.mock('@/features/onboarding/api', () => ({
   saveOnboardingDetails: jest.fn(),
 }));
 
+jest.mock('@/features/profile/api', () => ({
+  updateMyProfile: jest.fn(),
+  fetchInterestsCatalog: jest.fn().mockResolvedValue([]),
+  addMyInterest: jest.fn(),
+  removeMyInterest: jest.fn(),
+}));
+
 jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
 
 jest.mock('@react-native-google-signin/google-signin', () => ({
@@ -91,6 +98,7 @@ function makeProfile(overrides: Record<string, unknown> = {}) {
     name: 'Ana',
     age: null,
     bio: null,
+    instagram: null,
     complete: false,
     onboardingComplete: true,
     genderCode: null,
@@ -175,6 +183,42 @@ describe('Navigation', () => {
 
     expect(await screen.findByTestId('main-screen')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Inicio', selected: true })).toBeTruthy();
+  });
+
+  describe('editar perfil', () => {
+    const openEditProfile = async () => {
+      await renderNavigation(signedIn);
+      await fireEvent.press(screen.getByRole('tab', { name: 'Perfil' }));
+      await fireEvent.press(await screen.findByRole('button', { name: 'Editar perfil' }));
+    };
+
+    it('desde el perfil abre la pantalla de edición, sobre las tabs', async () => {
+      await openEditProfile();
+
+      expect(await screen.findByTestId('edit-profile-screen')).toBeTruthy();
+    });
+
+    it('el botón de volver regresa al perfil', async () => {
+      await openEditProfile();
+      await screen.findByTestId('edit-profile-screen');
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+
+      expect(await screen.findByRole('button', { name: 'Editar perfil' })).toBeTruthy();
+    });
+
+    it('desde la edición se llega a los intereses', async () => {
+      await openEditProfile();
+      await fireEvent.press(await screen.findByRole('button', { name: 'Editar intereses' }));
+
+      expect(await screen.findByTestId('edit-interests-screen')).toBeTruthy();
+    });
+
+    it('durante el onboarding no se puede llegar a la edición', async () => {
+      await renderNavigation(signedIn, readyProfile({ onboardingComplete: false }));
+
+      expect(screen.queryByTestId('edit-profile-screen')).toBeNull();
+    });
   });
 
   it('al autenticarse desde el ingreso pasa a la pantalla principal', async () => {

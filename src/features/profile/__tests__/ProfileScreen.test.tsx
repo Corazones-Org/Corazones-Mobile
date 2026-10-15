@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
@@ -21,6 +21,7 @@ const profile = {
   name: 'Ana',
   age: 30,
   bio: 'Hola, soy Ana',
+  instagram: 'ana.p',
   complete: true,
   genderCode: 'female',
   partnerPreferenceCode: 'men',
@@ -28,11 +29,16 @@ const profile = {
   interests: [{ code: 'music', labels: { es: 'Música', en: 'Music' } }],
 };
 
+const navigation = { navigate: jest.fn() };
+const renderScreen = () => render(<ProfileScreen navigation={navigation as never} route={{} as never} />);
+
 describe('ProfileScreen', () => {
+  beforeEach(() => jest.clearAllMocks());
+
   it('muestra los datos del perfil y el botón de cerrar sesión', async () => {
     mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
 
-    const { getByText } = await render(<ProfileScreen />);
+    const { getByText } = await renderScreen();
 
     expect(getByText('Ana')).toBeTruthy();
     expect(getByText('30')).toBeTruthy();
@@ -59,7 +65,7 @@ describe('ProfileScreen', () => {
       },
     });
 
-    const { getAllByText } = await render(<ProfileScreen />);
+    const { getAllByText } = await renderScreen();
 
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(5);
   });
@@ -69,12 +75,29 @@ describe('ProfileScreen', () => {
 
     await render(
       <SafeAreaInsetsContext.Provider value={{ top: 47, left: 0, right: 0, bottom: 34 }}>
-        <ProfileScreen />
+        <ProfileScreen navigation={navigation as never} route={{} as never} />
       </SafeAreaInsetsContext.Provider>
     );
 
     const style = StyleSheet.flatten(screen.getByTestId('profile-scroll').props.contentContainerStyle);
     // 34 (safe area) + 24 (gap) + 64 (bar) + 32 (air)
     expect(style.paddingBottom).toBe(154);
+  });
+
+  it('muestra el Instagram si lo tiene', async () => {
+    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
+
+    const { getByText } = await renderScreen();
+
+    expect(getByText('@ana.p')).toBeTruthy();
+  });
+
+  it('tiene un botón para editar el perfil', async () => {
+    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
+
+    const { getByRole } = await renderScreen();
+    await fireEvent.press(getByRole('button', { name: 'Editar perfil' }));
+
+    expect(navigation.navigate).toHaveBeenCalledWith('EditProfile');
   });
 });

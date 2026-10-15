@@ -1,42 +1,22 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from '@/components/Button/Button';
-import { ChoiceTile } from '@/components/ChoiceTile/ChoiceTile';
-import type { IconName } from '@/components/Icon/paths';
 import { Stepper } from '@/components/Stepper/Stepper';
 import { useToast } from '@/components/Toast/ToastProvider';
 import { TopBar } from '@/components/TopBar/TopBar';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useProfile } from '@/features/profile/ProfileProvider';
 import type { OnboardingStackParamList } from '@/navigation/types';
-import { useTheme } from '@/theme/ThemeProvider';
 
 import { fetchCatalogs, saveOnboardingDetails, type CatalogOption } from './api';
+import { GenderSeekingPicker, type Catalogs } from './GenderSeekingPicker';
 import { StepLayout } from './StepLayout';
-
-type Tone = 'primary' | 'soft' | 'muted';
-
-// Order and look of the tiles (from the design); the catalogs in the database decide which exist.
-const GENDER_TILES: { code: string; icon: IconName }[] = [
-  { code: 'female', icon: 'venus' },
-  { code: 'male', icon: 'mars' },
-  { code: 'other', icon: 'moreCircle' },
-];
-
-const SEEKING_TILES: { code: string; icon: IconName; tone: Tone }[] = [
-  { code: 'women', icon: 'heart', tone: 'soft' },
-  { code: 'men', icon: 'heart', tone: 'primary' },
-  { code: 'everyone', icon: 'hearts', tone: 'muted' },
-];
-
-type Catalogs = { genders: CatalogOption[]; partnerPreferences: CatalogOption[] };
 
 export function DetailsStep({ navigation }: NativeStackScreenProps<OnboardingStackParamList, 'Details'>) {
   const { t } = useTranslation();
-  const { colors, spacing, typography } = useTheme();
   const { show: showToast } = useToast();
   const { session } = useAuth();
   const userId = session?.user.id as string;
@@ -92,9 +72,6 @@ export function DetailsStep({ navigation }: NativeStackScreenProps<OnboardingSta
     }
   };
 
-  const exists = (options: CatalogOption[] | undefined, code: string) =>
-    options?.some((option) => option.code === code);
-
   return (
     <StepLayout
       testID="details-step"
@@ -123,48 +100,19 @@ export function DetailsStep({ navigation }: NativeStackScreenProps<OnboardingSta
           {t('profile.retry')}
         </Button>
       ) : catalogs ? (
-        <>
-          <View style={{ gap: spacing[3] }}>
-            <Text style={[typography.h4, { color: colors.textPrimary }]}>{t('onboarding.details.gender')}</Text>
-            <View style={[styles.row, { gap: spacing[3] }]}>
-              {GENDER_TILES.filter((tile) => exists(catalogs.genders, tile.code)).map((tile) => (
-                <ChoiceTile
-                  key={tile.code}
-                  icon={tile.icon}
-                  label={t(`genders.${tile.code}`)}
-                  selected={gender === tile.code}
-                  onPress={() => setGender(tile.code)}
-                />
-              ))}
-            </View>
-          </View>
-
-          <View style={{ gap: spacing[3] }}>
-            <Text style={[typography.h4, { color: colors.textPrimary }]}>{t('onboarding.details.seeking')}</Text>
-            <View style={[styles.row, { gap: spacing[3] }]}>
-              {SEEKING_TILES.filter((tile) => exists(catalogs.partnerPreferences, tile.code)).map((tile) => (
-                <ChoiceTile
-                  key={tile.code}
-                  icon={tile.icon}
-                  iconTone={tile.tone}
-                  filled
-                  label={t(`partnerPreferences.${tile.code}`)}
-                  selected={seeking === tile.code}
-                  onPress={() => setSeeking(tile.code)}
-                />
-              ))}
-            </View>
-          </View>
-        </>
+        <GenderSeekingPicker
+          catalogs={catalogs}
+          gender={gender}
+          seeking={seeking}
+          onGenderChange={setGender}
+          onSeekingChange={setSeeking}
+        />
       ) : null}
     </StepLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-  },
   retry: {
     alignSelf: 'center',
   },
