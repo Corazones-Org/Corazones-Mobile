@@ -8,3 +8,6 @@ if (!process.env.EXPO_PUBLIC_SUPABASE_URL) {
 if (!process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY) {
   process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key';
 }
+if (!process.env.EXPO_PUBLIC_APP_ENV) {
+  process.env.EXPO_PUBLIC_APP_ENV = 'develop';
+}

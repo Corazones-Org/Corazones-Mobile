@@ -4,7 +4,7 @@ import type { MyProfile } from './types';
 
 // One round trip: the profile row plus its catalog values, photos and interests.
 const MY_PROFILE_SELECT = `
-  name, age, bio, profile_complete,
+  name, age, bio, profile_complete, onboarding_completed_at,
   gender:genders ( code ),
   partner_preference:partner_preferences ( code ),
   photos:profile_photos ( storage_path, sort_order ),
@@ -16,6 +16,7 @@ type MyProfileRow = {
   age: number | null;
   bio: string | null;
   profile_complete: boolean;
+  onboarding_completed_at: string | null;
   gender: { code: string } | null;
   partner_preference: { code: string } | null;
   photos: { storage_path: string; sort_order: number }[];
@@ -39,6 +40,7 @@ export async function fetchMyProfile(userId: string): Promise<MyProfile> {
     age: row.age,
     bio: row.bio,
     complete: row.profile_complete,
+    onboardingComplete: row.onboarding_completed_at != null,
     genderCode: row.gender?.code ?? null,
     partnerPreferenceCode: row.partner_preference?.code ?? null,
     photoPaths: [...row.photos]

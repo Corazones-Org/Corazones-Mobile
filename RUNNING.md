@@ -74,3 +74,14 @@ Solo cuando cambia algo **nativo**:
 - Se toca algo dentro de `ios/` o `android/`.
 
 Para cambios normales de JS/TS, `npm run android:fast` / `npm run ios:fast` alcanza.
+
+## Resetear los datos de DEV
+
+Para probar la app desde cero (login con Google -> cuenta nueva -> onboarding completo):
+
+1. Supabase -> SQL Editor -> pegar y correr `supabase/dev/reset_dev_data.sql`. Borra usuarios, perfiles, fotos (filas y archivos del bucket `develop`), intereses elegidos y turnos; deja intactos los catálogos y el esquema.
+2. En el simulador/dispositivo: cerrar la app y volver a abrirla (la sesión guardada ya no existe, así que muestra el login).
+
+Si querés vaciar el bucket de forma más completa: Storage -> `develop` -> `users` -> seleccionar las carpetas -> Delete (el SQL borra los registros de los archivos, pero Supabase avisa que no siempre libera el espacio de fondo).
+
+Solo para DEV: nunca correrlo contra un proyecto con usuarios reales.

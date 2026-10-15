@@ -7,7 +7,7 @@
 		"loading": "Cargando..."
 	},
 	"auth": {
-		"signInWithGoogle": "Ingresar con Google",
+		"signInWithGoogle": "Continuar con Google",
 		"signOut": "Cerrar sesión",
 		"errors": {
 			"network": "No hay conexión. Revisá tu internet y probá de nuevo.",
@@ -24,7 +24,6 @@
 	},
 	"profile": {
 		"title": "Mi perfil",
-		"loadError": "No pudimos cargar tu perfil.",
 		"retry": "Reintentar",
 		"empty": "—",
 		"fields": {
@@ -38,11 +37,54 @@
 			"complete": "Perfil completo"
 		},
 		"yes": "Sí",
-		"no": "No"
+		"no": "No",
+		"loadErrorTitle": "No pudimos cargar tu perfil",
+		"loadErrorMessage": "Volvé a iniciar sesión."
 	},
 	"partnerPreferences": {
 		"men": "Hombres",
 		"women": "Mujeres",
 		"everyone": "Todos"
+	},
+	"tabs": {
+		"main": "Inicio",
+		"profile": "Perfil",
+		"navigation": "Navegación principal"
+	},
+	"main": {
+		"title": "Pantalla principal",
+		"comingSoon": "Próximamente: tu próximo turno."
+	},
+	"components": {
+		"topBar": {
+			"back": "Volver"
+		},
+		"stepper": {
+			"label": "Paso {{current}} de {{steps}}"
+		},
+		"photoTile": {
+			"main": "Principal",
+			"add": "Agregar foto",
+			"remove": "Eliminar foto",
+			"uploadFailed": "No se pudo subir",
+			"retry": "Reintentar"
+		}
+	},
+	"onboarding": {
+		"continue": "Continuar",
+		"photos": {
+			"title": "Agregá tus fotos",
+			"subtitle": "Mostrá tu mejor versión.\nPodés subir hasta 6 fotos.",
+			"tip": "Usá fotos reales, variadas y donde se te vea bien. Los perfiles con fotos suelen tener más matches."
+		},
+		"details": {
+			"title": "Contanos sobre vos",
+			"subtitle": "Esto nos ayuda a mostrarte mejores personas.",
+			"gender": "Tu género",
+			"seeking": "Busco",
+			"loadErrorTitle": "No pudimos cargar las opciones",
+			"saveErrorTitle": "No pudimos guardar tus datos",
+			"tryAgain": "Probá de nuevo."
+		}
 	}
 }

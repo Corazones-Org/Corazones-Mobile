@@ -30,6 +30,7 @@ describe('fetchMyProfile', () => {
         age: 30,
         bio: 'Hola',
         profile_complete: true,
+        onboarding_completed_at: '2026-10-15T12:00:00Z',
         gender: { code: 'female' },
         partner_preference: { code: 'men' },
         photos: [
@@ -48,6 +49,7 @@ describe('fetchMyProfile', () => {
       age: 30,
       bio: 'Hola',
       complete: true,
+      onboardingComplete: true,
       genderCode: 'female',
       partnerPreferenceCode: 'men',
       photoPaths: ['u/a.jpg', 'u/b.jpg'],
@@ -62,6 +64,7 @@ describe('fetchMyProfile', () => {
         age: null,
         bio: null,
         profile_complete: false,
+        onboarding_completed_at: null,
         gender: null,
         partner_preference: null,
         photos: [],
@@ -80,6 +83,7 @@ describe('fetchMyProfile', () => {
       photoPaths: [],
       interests: [],
       complete: false,
+      onboardingComplete: false,
     });
   });
 

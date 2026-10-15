@@ -1,11 +1,13 @@
-import { fireEvent, render } from '@testing-library/react-native';
+import { render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 
 import '@/i18n';
 
 let mockUseMyProfile: jest.Mock;
 
-jest.mock('../useMyProfile', () => ({
-  useMyProfile: () => mockUseMyProfile(),
+jest.mock('../ProfileProvider', () => ({
+  useProfile: () => mockUseMyProfile(),
 }));
 
 jest.mock('@/features/auth/SignOutButton', () => {
@@ -13,7 +15,7 @@ jest.mock('@/features/auth/SignOutButton', () => {
   return { SignOutButton: () => <Text>SignOutButton</Text> };
 });
 
-import { SignedInScreen } from '../SignedInScreen';
+import { ProfileScreen } from '../ProfileScreen';
 
 const profile = {
   name: 'Ana',
@@ -26,19 +28,11 @@ const profile = {
   interests: [{ code: 'music', labels: { es: 'Música', en: 'Music' } }],
 };
 
-describe('SignedInScreen', () => {
-  it('muestra un loading mientras carga el perfil', async () => {
-    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'loading', profile: null });
-
-    const { getByText } = await render(<SignedInScreen />);
-
-    expect(getByText('Cargando...')).toBeTruthy();
-  });
-
+describe('ProfileScreen', () => {
   it('muestra los datos del perfil y el botón de cerrar sesión', async () => {
     mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
 
-    const { getByText } = await render(<SignedInScreen />);
+    const { getByText } = await render(<ProfileScreen />);
 
     expect(getByText('Ana')).toBeTruthy();
     expect(getByText('30')).toBeTruthy();
@@ -65,20 +59,22 @@ describe('SignedInScreen', () => {
       },
     });
 
-    const { getAllByText } = await render(<SignedInScreen />);
+    const { getAllByText } = await render(<ProfileScreen />);
 
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(5);
   });
 
-  it('muestra el error y reintenta', async () => {
-    const reload = jest.fn();
-    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'error', profile: null, reload });
+  it('deja lugar abajo para que el contenido se pueda desplazar por encima de la barra flotante', async () => {
+    mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
 
-    const { getByText } = await render(<SignedInScreen />);
-    expect(getByText('No pudimos cargar tu perfil.')).toBeTruthy();
+    await render(
+      <SafeAreaInsetsContext.Provider value={{ top: 47, left: 0, right: 0, bottom: 34 }}>
+        <ProfileScreen />
+      </SafeAreaInsetsContext.Provider>
+    );
 
-    await fireEvent.press(getByText('Reintentar'));
-
-    expect(reload).toHaveBeenCalled();
+    const style = StyleSheet.flatten(screen.getByTestId('profile-scroll').props.contentContainerStyle);
+    // 34 (safe area) + 24 (gap) + 64 (bar) + 32 (air)
+    expect(style.paddingBottom).toBe(154);
   });
 });
