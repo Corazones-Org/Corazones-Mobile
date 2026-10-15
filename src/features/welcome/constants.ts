@@ -8,3 +8,7 @@ export const SPLASH_IMAGE_SIZE = 288;
 // SPLASH_BACKGROUND is the color of this gradient at the center of the screen.
 export const WELCOME_GRADIENT_COLORS = ['#EF937E', '#E44358', '#8B2154'] as const;
 export const WELCOME_GRADIENT_LOCATIONS = [0, 0.35, 1] as const;
+
+// Sign-in block under the logo: divider, then the Google button, each with some air above.
+export const DIVIDER_HEIGHT = 14;
+export const SIGN_IN_BLOCK_GAP = 36;

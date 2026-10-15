@@ -84,14 +84,14 @@ describe('Navigation', () => {
     await renderNavigation({ status: 'loading', session: null });
 
     expect(screen.getByTestId('welcome-screen')).toBeTruthy();
-    expect(screen.queryByText('Ingresar con Google')).toBeNull();
+    expect(screen.queryByText('Continuar con Google')).toBeNull();
     expect(screen.queryByTestId('main-screen')).toBeNull();
   });
 
   it('muestra el ingreso cuando no hay sesión', async () => {
     await renderNavigation(signedOut);
 
-    expect(screen.getByText('Ingresar con Google')).toBeTruthy();
+    expect(screen.getByText('Continuar con Google')).toBeTruthy();
     expect(screen.queryByTestId('main-screen')).toBeNull();
   });
 
@@ -108,7 +108,7 @@ describe('Navigation', () => {
   it('al autenticarse desde el ingreso pasa a la pantalla principal', async () => {
     await renderNavigation(signedOut);
 
-    await fireEvent.press(screen.getByText('Ingresar con Google'));
+    await fireEvent.press(screen.getByText('Continuar con Google'));
 
     expect(await screen.findByTestId('main-screen')).toBeTruthy();
     expect(screen.queryByTestId('welcome-screen')).toBeNull();
@@ -139,7 +139,7 @@ describe('Navigation', () => {
     await fireEvent.press(screen.getByText('Perfil'));
     await fireEvent.press(await screen.findByText('Cerrar sesión'));
 
-    expect(await screen.findByText('Ingresar con Google')).toBeTruthy();
+    expect(await screen.findByText('Continuar con Google')).toBeTruthy();
     expect(screen.queryByText('Perfil')).toBeNull();
   });
 
@@ -148,7 +148,7 @@ describe('Navigation', () => {
 
     await act(async () => mockSetAuth(signedOut));
 
-    expect(await screen.findByText('Ingresar con Google')).toBeTruthy();
+    expect(await screen.findByText('Continuar con Google')).toBeTruthy();
     expect(screen.queryByTestId('main-screen')).toBeNull();
   });
 });

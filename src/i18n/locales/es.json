@@ -7,7 +7,7 @@
 		"loading": "Cargando..."
 	},
 	"auth": {
-		"signInWithGoogle": "Ingresar con Google",
+		"signInWithGoogle": "Continuar con Google",
 		"signOut": "Cerrar sesión",
 		"errors": {
 			"network": "No hay conexión. Revisá tu internet y probá de nuevo.",

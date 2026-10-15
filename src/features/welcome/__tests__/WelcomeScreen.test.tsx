@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor, within } from '@testing-library/react-native';
 
 import '@/i18n';
 
@@ -33,11 +33,12 @@ describe('WelcomeScreen', () => {
   it('shows the heart and the wordmark while the session is loading, without a sign-in button', async () => {
     mockUseAuth.mockReturnValue({ status: 'loading', session: null });
 
-    const { getByTestId, getByText, queryByText } = await render(<WelcomeScreen />);
+    const { getByTestId, getByText, queryByText, queryByTestId } = await render(<WelcomeScreen />);
 
     expect(getByTestId('welcome-heart')).toBeTruthy();
     expect(getByText('Corazones')).toBeTruthy();
-    expect(queryByText('Ingresar con Google')).toBeNull();
+    expect(queryByText('Continuar con Google')).toBeNull();
+    expect(queryByTestId('welcome-divider')).toBeNull();
   });
 
   it('shows the Google sign-in button once the user is known to be signed out', async () => {
@@ -45,15 +46,26 @@ describe('WelcomeScreen', () => {
 
     const { getByText, getByTestId } = await render(<WelcomeScreen />);
 
-    expect(getByText('Ingresar con Google')).toBeTruthy();
+    expect(getByText('Continuar con Google')).toBeTruthy();
     expect(getByTestId('welcome-heart')).toBeTruthy();
+  });
+
+  it('shows heart, divider and Google button together in one centered column', async () => {
+    mockUseAuth.mockReturnValue({ status: 'signedOut', session: null });
+
+    const { getByTestId } = await render(<WelcomeScreen />);
+
+    const content = getByTestId('welcome-content');
+    expect(within(content).getByTestId('welcome-heart')).toBeTruthy();
+    expect(within(content).getByTestId('welcome-divider')).toBeTruthy();
+    expect(within(content).getByTestId('google-logo')).toBeTruthy();
   });
 
   it('starts the Google sign-in when the button is pressed', async () => {
     mockUseAuth.mockReturnValue({ status: 'signedOut', session: null });
     const { getByText } = await render(<WelcomeScreen />);
 
-    await fireEvent.press(getByText('Ingresar con Google'));
+    await fireEvent.press(getByText('Continuar con Google'));
 
     expect(mockSignIn).toHaveBeenCalledTimes(1);
   });
