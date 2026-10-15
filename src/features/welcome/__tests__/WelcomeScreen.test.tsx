@@ -20,6 +20,7 @@ jest.mock('expo-splash-screen', () => ({
 }));
 
 import * as SplashScreen from 'expo-splash-screen';
+import { themes } from '@/theme/tokens';
 import { WelcomeScreen } from '../WelcomeScreen';
 
 describe('WelcomeScreen', () => {
@@ -87,5 +88,20 @@ describe('WelcomeScreen', () => {
     await fireEvent(getByTestId('welcome-screen'), 'layout');
 
     await waitFor(() => expect(SplashScreen.hide).toHaveBeenCalledTimes(1));
+  });
+
+  it('draws its text with design tokens: Poppins and the on-photo color', async () => {
+    mockUseAuth.mockReturnValue({ status: 'signedOut', session: null });
+    mockError = 'Ocurrió un error al iniciar sesión. Probá de nuevo.';
+
+    const { getByText } = await render(<WelcomeScreen />);
+
+    expect(getByText('Corazones')).toHaveStyle({
+      fontFamily: 'Poppins_400Regular',
+      color: themes.light.colors.onPhoto,
+    });
+    expect(getByText('Ocurrió un error al iniciar sesión. Probá de nuevo.')).toHaveStyle({
+      color: themes.light.colors.onPhoto,
+    });
   });
 });

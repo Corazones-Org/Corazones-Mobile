@@ -7,10 +7,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useGoogleSignIn } from '@/features/auth/useGoogleSignIn';
-import { GOOGLE_BUTTON_HEIGHT, GoogleSignInButton } from '@/features/auth/GoogleSignInButton';
+import { GoogleSignInButton } from '@/features/auth/GoogleSignInButton';
+import { useTheme } from '@/theme/ThemeProvider';
 import {
   DIVIDER_HEIGHT,
-  SIGN_IN_BLOCK_GAP,
   SPLASH_IMAGE_SIZE,
   WELCOME_GRADIENT_COLORS,
   WELCOME_GRADIENT_LOCATIONS,
@@ -22,6 +22,7 @@ import { WelcomeDivider } from './WelcomeDivider';
 // nothing moves when the sign-in button appears. Replaces the native splash once it is laid out.
 export function WelcomeScreen() {
   const { t } = useTranslation();
+  const theme = useTheme();
   const { status } = useAuth();
   const { signIn, error } = useGoogleSignIn();
 
@@ -37,27 +38,52 @@ export function WelcomeScreen() {
         end={{ x: 0.9, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <View testID="welcome-content" style={styles.content}>
+      <View testID="welcome-content" style={[styles.content, { paddingHorizontal: theme.spacing[6] }]}>
         <Image
           testID="welcome-heart"
           source={require('../../../assets/splash-icon.png')}
           style={styles.heart}
           resizeMode="contain"
         />
-        <Text style={styles.wordmark}>{t('company.title')}</Text>
+        <Text
+          style={[
+            styles.wordmark,
+            { color: theme.colors.onPhoto, fontFamily: theme.typography.body.fontFamily },
+          ]}
+        >
+          {t('company.title')}
+        </Text>
 
         {signedOut ? (
           <>
-            <View style={styles.dividerSlot}>
+            <View
+              style={[
+                styles.dividerSlot,
+                { marginTop: theme.spacing[8], paddingHorizontal: theme.spacing[8] + theme.spacing[2] },
+              ]}
+            >
               <WelcomeDivider />
             </View>
-            <View style={styles.buttonSlot}>
+            <View style={[styles.buttonSlot, { marginTop: theme.spacing[8] }]}>
               <GoogleSignInButton onPress={signIn} />
-              {error ? <Text style={styles.error}>{error}</Text> : null}
+              {error ? (
+                <Text
+                  style={[
+                    styles.error,
+                    { color: theme.colors.onPhoto, fontFamily: theme.typography.caption.fontFamily },
+                  ]}
+                >
+                  {error}
+                </Text>
+              ) : null}
             </View>
           </>
         ) : (
-          <View style={styles.reservedSpace} />
+          <View
+            style={{
+              height: theme.spacing[8] * 2 + DIVIDER_HEIGHT + theme.size.controlLg,
+            }}
+          />
         )}
       </View>
       <StatusBar style="light" />
@@ -72,7 +98,6 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: 'center',
-    paddingHorizontal: 24,
   },
   // The heart image has transparent margins; pull them in so the logo block looks balanced.
   heart: {
@@ -83,27 +108,18 @@ const styles = StyleSheet.create({
   },
   wordmark: {
     paddingLeft: 10, // balances the trailing letterSpacing so the word looks centered
-    color: '#fff',
     fontSize: 28,
-    fontWeight: '300',
     letterSpacing: 10,
     textTransform: 'uppercase',
   },
   dividerSlot: {
     alignSelf: 'stretch',
-    marginTop: SIGN_IN_BLOCK_GAP,
-    paddingHorizontal: 40,
   },
   buttonSlot: {
     alignSelf: 'stretch',
-    marginTop: SIGN_IN_BLOCK_GAP,
-  },
-  reservedSpace: {
-    height: SIGN_IN_BLOCK_GAP * 2 + DIVIDER_HEIGHT + GOOGLE_BUTTON_HEIGHT,
   },
   error: {
     marginTop: 12,
-    color: '#fff',
     textAlign: 'center',
   },
 });

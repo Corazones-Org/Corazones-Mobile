@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "dependencies": {
+    "@expo-google-fonts/poppins": "^0.4.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.5",
     "@react-navigation/bottom-tabs": "^7.21.0",
@@ -12,6 +13,7 @@
     "expo": "~57.0.29",
     "expo-constants": "~57.0.22",
     "expo-dev-client": "~57.0.20",
+    "expo-font": "~57.0.4",
     "expo-linear-gradient": "~57.0.2",
     "expo-localization": "~57.0.2",
     "expo-splash-screen": "~57.0.10",
@@ -46,7 +48,8 @@
     "web": "expo start --web",
     "clean": "expo prebuild --clean",
     "test": "jest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "theme": "node scripts/generate-theme.js"
   },
   "private": true,
   "jest": {

@@ -2,6 +2,7 @@ import { fireEvent, render } from '@testing-library/react-native';
 
 import '@/i18n';
 
+import { themes } from '@/theme/tokens';
 import { GoogleSignInButton } from '../GoogleSignInButton';
 
 describe('GoogleSignInButton', () => {
@@ -25,5 +26,15 @@ describe('GoogleSignInButton', () => {
     await fireEvent.press(getByText('Continuar con Google'));
 
     expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('usa el botón del sistema de diseño: Poppins semibold sobre el fondo card', async () => {
+    const { getByText, getByRole } = await render(<GoogleSignInButton onPress={jest.fn()} />);
+
+    expect(getByText('Continuar con Google')).toHaveStyle({
+      fontFamily: 'Poppins_600SemiBold',
+      color: themes.light.colors.textPrimary,
+    });
+    expect(getByRole('button')).toHaveStyle({ backgroundColor: themes.light.colors.card });
   });
 });

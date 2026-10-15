@@ -1,10 +1,11 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Svg, { Path } from 'react-native-svg';
 
-export const GOOGLE_BUTTON_HEIGHT = 56;
+import { Button } from '@/components/Button/Button';
+import { useTheme } from '@/theme/ThemeProvider';
 
 // Google's multicolor "G" (official brand colors), drawn as vector so it stays sharp at any density.
+// The design system does not redraw third-party marks, so the button takes it as its `icon`.
 function GoogleLogo() {
   return (
     <Svg testID="google-logo" width={26} height={26} viewBox="0 0 48 48">
@@ -28,45 +29,27 @@ function GoogleLogo() {
   );
 }
 
-// White pill with the Google logo, for the sign-in screen (sits over the red gradient).
+// The design system's Google button, shaped as a pill with a soft shadow for the sign-in screen
+// (it sits over the red gradient).
 export function GoogleSignInButton({ onPress }: { onPress: () => void }) {
   const { t } = useTranslation();
-  const label = t('auth.signInWithGoogle');
+  const theme = useTheme();
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
+    <Button
+      variant="google"
+      size="lg"
+      icon={<GoogleLogo />}
       onPress={onPress}
-      style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+      style={{
+        alignSelf: 'stretch',
+        gap: theme.spacing[4],
+        borderRadius: theme.radius.pill,
+        borderColor: 'transparent',
+        ...theme.shadow.float,
+      }}
     >
-      <GoogleLogo />
-      <Text style={styles.label}>{label}</Text>
-    </Pressable>
+      {t('auth.signInWithGoogle')}
+    </Button>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    height: GOOGLE_BUTTON_HEIGHT,
-    borderRadius: GOOGLE_BUTTON_HEIGHT / 2,
-    backgroundColor: '#fff',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 8,
-  },
-  pressed: {
-    opacity: 0.9,
-  },
-  label: {
-    color: '#1F1F1F',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-});

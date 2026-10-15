@@ -15,6 +15,12 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: { configure: jest.fn(), hasPlayServices: jest.fn().mockResolvedValue(true) },
 }));
 
+let mockFontsReady = true;
+
+jest.mock('@/theme/fonts', () => ({
+  useAppFonts: () => mockFontsReady,
+}));
+
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn(),
   hide: jest.fn(),
@@ -24,6 +30,10 @@ import * as SplashScreen from 'expo-splash-screen';
 import App from './App';
 
 describe('App', () => {
+  beforeEach(() => {
+    mockFontsReady = true;
+  });
+
   it('mantiene la splash nativa visible al arrancar', () => {
     expect(SplashScreen.preventAutoHideAsync).toHaveBeenCalled();
   });
@@ -32,5 +42,13 @@ describe('App', () => {
     const { getByTestId } = await render(<App />);
 
     expect(getByTestId('welcome-screen')).toBeTruthy();
+  });
+
+  it('no muestra nada (la splash nativa sigue visible) hasta que las fuentes están listas', async () => {
+    mockFontsReady = false;
+
+    const { queryByTestId } = await render(<App />);
+
+    expect(queryByTestId('welcome-screen')).toBeNull();
   });
 });
