@@ -9,7 +9,36 @@
 	"auth": {
 		"signInWithGoogle": "Ingresar con Google",
 		"signOut": "Cerrar sesión",
-		"genericError": "Ocurrió un error al iniciar sesión. Probá de nuevo."
+		"errors": {
+			"network": "No hay conexión. Revisá tu internet y probá de nuevo.",
+			"noPlayServices": "Google Play Services no está disponible en este dispositivo.",
+			"noIdToken": "Google no completó el ingreso. Probá de nuevo.",
+			"rejected": "No pudimos validar tu cuenta de Google. Probá de nuevo.",
+			"unknown": "Ocurrió un error al iniciar sesión. Probá de nuevo."
+		}
+	},
+	"genders": {
+		"male": "Hombre",
+		"female": "Mujer",
+		"other": "Otro"
+	},
+	"profile": {
+		"title": "Mi perfil",
+		"loadError": "No pudimos cargar tu perfil.",
+		"retry": "Reintentar",
+		"empty": "—",
+		"fields": {
+			"name": "Nombre",
+			"age": "Edad",
+			"gender": "Género",
+			"interestedIn": "Busco",
+			"bio": "Sobre mí",
+			"interests": "Intereses",
+			"photos": "Fotos",
+			"complete": "Perfil completo"
+		},
+		"yes": "Sí",
+		"no": "No"
 	},
 	"partnerPreferences": {
 		"men": "Hombres",

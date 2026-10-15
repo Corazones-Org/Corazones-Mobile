@@ -1,5 +1,6 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { signInWithGoogle } from './api';
 
@@ -9,6 +10,9 @@ GoogleSignin.configure({
 });
 
 export function useGoogleSignIn() {
+  const { t } = useTranslation();
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     GoogleSignin.hasPlayServices().catch(() => {
       // Android without Play Services (e.g. some emulators): the sign-in
@@ -16,7 +20,18 @@ export function useGoogleSignIn() {
     });
   }, []);
 
-  const signIn = useCallback(() => signInWithGoogle(), []);
+  const signIn = useCallback(async () => {
+    setError(null);
+    try {
+      const { error: code } = await signInWithGoogle();
+      if (code) {
+        setError(t(`auth.errors.${code}`));
+      }
+    } catch (unexpectedError) {
+      console.error('Unexpected sign-in error:', unexpectedError);
+      setError(t('auth.errors.unknown'));
+    }
+  }, [t]);
 
-  return { signIn };
+  return { signIn, error };
 }

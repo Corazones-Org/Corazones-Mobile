@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -19,24 +19,9 @@ import {
 export function WelcomeScreen() {
   const { t } = useTranslation();
   const { status } = useAuth();
-  const { signIn } = useGoogleSignIn();
-  const [error, setError] = useState<string | null>(null);
+  const { signIn, error } = useGoogleSignIn();
 
   const hideNativeSplash = useCallback(() => SplashScreen.hide(), []);
-
-  const handleSignIn = async () => {
-    setError(null);
-    try {
-      const { error: signInError } = await signIn();
-      if (signInError) {
-        console.error('Google sign-in error:', signInError);
-        setError(t('auth.genericError'));
-      }
-    } catch (unexpectedError) {
-      console.error('Unexpected sign-in error:', unexpectedError);
-      setError(t('auth.genericError'));
-    }
-  };
 
   return (
     <View testID="welcome-screen" style={styles.container} onLayout={hideNativeSplash}>
@@ -59,7 +44,7 @@ export function WelcomeScreen() {
         <View style={styles.footer}>
           <Pressable
             accessibilityRole="button"
-            onPress={handleSignIn}
+            onPress={signIn}
             style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
           >
             <Text style={styles.buttonText}>{t('auth.signInWithGoogle')}</Text>
