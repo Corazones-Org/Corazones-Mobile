@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
@@ -24,6 +25,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     return () => subscription.subscription.unsubscribe();
+  }, []);
+
+  // React Native does not tell supabase-js when the app goes to the background, so its token
+  // refresh timer would keep running (or fire late) there. Run it only while the app is active.
+  useEffect(() => {
+    const syncAutoRefresh = (state: AppStateStatus) => {
+      if (state === 'active') {
+        supabase.auth.startAutoRefresh();
+      } else {
+        supabase.auth.stopAutoRefresh();
+      }
+    };
+
+    syncAutoRefresh(AppState.currentState);
+    const appStateSubscription = AppState.addEventListener('change', syncAutoRefresh);
+
+    return () => {
+      appStateSubscription.remove();
+      supabase.auth.stopAutoRefresh();
+    };
   }, []);
 
   const status: AuthStatus = session === undefined ? 'loading' : session ? 'signedIn' : 'signedOut';
