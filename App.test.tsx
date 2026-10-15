@@ -23,6 +23,23 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
   isSuccessResponse: jest.fn(),
 }));
 
+jest.mock('@/features/profile/useMyProfile', () => ({
+  useMyProfile: () => ({
+    status: 'ready',
+    reload: jest.fn(),
+    profile: {
+      name: 'Ana',
+      age: null,
+      bio: null,
+      complete: false,
+      genderCode: null,
+      partnerPreferenceCode: null,
+      photoPaths: [],
+      interests: [],
+    },
+  }),
+}));
+
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn(),
   hide: jest.fn(),
@@ -61,6 +78,7 @@ describe('App', () => {
     const { queryByTestId, getByText } = await render(<App />);
 
     expect(queryByTestId('welcome-screen')).toBeNull();
+    expect(getByText('Ana')).toBeTruthy();
     expect(getByText('Cerrar sesión')).toBeTruthy();
     expect(SplashScreen.hide).toHaveBeenCalledTimes(1);
   });

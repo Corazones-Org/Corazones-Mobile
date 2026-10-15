@@ -4,13 +4,14 @@ import '@/i18n';
 
 let mockUseAuth: jest.Mock;
 const mockSignIn = jest.fn();
+let mockError: string | null = null;
 
 jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => mockUseAuth(),
 }));
 
 jest.mock('@/features/auth/useGoogleSignIn', () => ({
-  useGoogleSignIn: () => ({ signIn: mockSignIn }),
+  useGoogleSignIn: () => ({ signIn: mockSignIn, error: mockError }),
 }));
 
 jest.mock('expo-splash-screen', () => ({
@@ -25,7 +26,8 @@ describe('WelcomeScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseAuth = jest.fn();
-    mockSignIn.mockResolvedValue({ error: null });
+    mockSignIn.mockResolvedValue(undefined);
+    mockError = null;
   });
 
   it('shows the heart and the wordmark while the session is loading, without a sign-in button', async () => {
@@ -56,26 +58,13 @@ describe('WelcomeScreen', () => {
     expect(mockSignIn).toHaveBeenCalledTimes(1);
   });
 
-  it('shows an error when the sign-in fails', async () => {
+  it('shows the sign-in error message', async () => {
     mockUseAuth.mockReturnValue({ status: 'signedOut', session: null });
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockSignIn.mockResolvedValue({ error: new Error('boom') });
-    const { getByText, findByText } = await render(<WelcomeScreen />);
+    mockError = 'Ocurrió un error al iniciar sesión. Probá de nuevo.';
 
-    await fireEvent.press(getByText('Ingresar con Google'));
+    const { getByText } = await render(<WelcomeScreen />);
 
-    expect(await findByText('Ocurrió un error al iniciar sesión. Probá de nuevo.')).toBeTruthy();
-  });
-
-  it('shows an error when the sign-in throws', async () => {
-    mockUseAuth.mockReturnValue({ status: 'signedOut', session: null });
-    jest.spyOn(console, 'error').mockImplementation(() => {});
-    mockSignIn.mockRejectedValue(new Error('crash'));
-    const { getByText, findByText } = await render(<WelcomeScreen />);
-
-    await fireEvent.press(getByText('Ingresar con Google'));
-
-    expect(await findByText('Ocurrió un error al iniciar sesión. Probá de nuevo.')).toBeTruthy();
+    expect(getByText('Ocurrió un error al iniciar sesión. Probá de nuevo.')).toBeTruthy();
   });
 
   it('hides the native splash only once the screen is laid out, so the handoff has no gap', async () => {

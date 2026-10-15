@@ -9,6 +9,13 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
     signOut: (...args: unknown[]) => mockGoogleSignOut(...args),
   },
   isSuccessResponse: (response: { type: string }) => response.type === 'success',
+  isErrorWithCode: (error: unknown) =>
+    typeof error === 'object' && error !== null && 'code' in error,
+  statusCodes: {
+    SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
+    IN_PROGRESS: 'IN_PROGRESS',
+    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+  },
 }));
 
 jest.mock('@/lib/supabase', () => ({
@@ -20,12 +27,15 @@ jest.mock('@/lib/supabase', () => ({
   },
 }));
 
+import { AuthApiError, AuthRetryableFetchError } from '@supabase/supabase-js';
+
 import { supabase } from '@/lib/supabase';
 import { signInWithGoogle, signOut } from '../api';
 
 describe('signInWithGoogle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => {});
     mockHasPlayServices.mockResolvedValue(true);
   });
 
@@ -63,22 +73,77 @@ describe('signInWithGoogle', () => {
     const result = await signInWithGoogle();
 
     expect(supabase.auth.signInWithIdToken).not.toHaveBeenCalled();
-    expect(result.error).not.toBeNull();
+    expect(result.error).toBe('noIdToken');
   });
 
-  it('propaga el error si Supabase rechaza el idToken', async () => {
+  it('devuelve "rejected" si Supabase rechaza el idToken', async () => {
     mockSignIn.mockResolvedValue({
       type: 'success',
       data: { idToken: 'google-id-token' },
     });
     (supabase.auth.signInWithIdToken as jest.Mock).mockResolvedValue({
       data: { session: null },
-      error: { message: 'invalid token' },
+      error: new AuthApiError('invalid token', 400, 'validation_failed'),
     });
 
     const result = await signInWithGoogle();
 
-    expect(result.error).toEqual({ message: 'invalid token' });
+    expect(result.error).toBe('rejected');
+  });
+
+  it('devuelve "network" si Supabase no se pudo alcanzar', async () => {
+    mockSignIn.mockResolvedValue({
+      type: 'success',
+      data: { idToken: 'google-id-token' },
+    });
+    (supabase.auth.signInWithIdToken as jest.Mock).mockResolvedValue({
+      data: { session: null },
+      error: new AuthRetryableFetchError('Network request failed', 0),
+    });
+
+    const result = await signInWithGoogle();
+
+    expect(result.error).toBe('network');
+  });
+
+  it('devuelve "noPlayServices" si Google Play Services no está disponible', async () => {
+    mockHasPlayServices.mockRejectedValue({ code: 'PLAY_SERVICES_NOT_AVAILABLE' });
+
+    const result = await signInWithGoogle();
+
+    expect(result.error).toBe('noPlayServices');
+  });
+
+  it('no devuelve error si Google lanza una cancelación', async () => {
+    mockSignIn.mockRejectedValue({ code: 'SIGN_IN_CANCELLED' });
+
+    const result = await signInWithGoogle();
+
+    expect(result.error).toBeNull();
+  });
+
+  it('no devuelve error si ya hay un login en curso', async () => {
+    mockSignIn.mockRejectedValue({ code: 'IN_PROGRESS' });
+
+    const result = await signInWithGoogle();
+
+    expect(result.error).toBeNull();
+  });
+
+  it('devuelve "network" si falla la red antes de llegar a Supabase', async () => {
+    mockSignIn.mockRejectedValue(new Error('Network request failed'));
+
+    const result = await signInWithGoogle();
+
+    expect(result.error).toBe('network');
+  });
+
+  it('devuelve "unknown" ante cualquier otro error', async () => {
+    mockSignIn.mockRejectedValue(new Error('boom'));
+
+    const result = await signInWithGoogle();
+
+    expect(result.error).toBe('unknown');
   });
 });
 
