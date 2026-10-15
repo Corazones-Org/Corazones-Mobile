@@ -44,5 +44,13 @@
 		"men": "Hombres",
 		"women": "Mujeres",
 		"everyone": "Todos"
+	},
+	"tabs": {
+		"main": "Inicio",
+		"profile": "Perfil"
+	},
+	"main": {
+		"title": "Pantalla principal",
+		"comingSoon": "Próximamente: tu próximo turno."
 	}
 }

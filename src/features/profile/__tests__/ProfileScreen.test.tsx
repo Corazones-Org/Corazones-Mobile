@@ -13,7 +13,7 @@ jest.mock('@/features/auth/SignOutButton', () => {
   return { SignOutButton: () => <Text>SignOutButton</Text> };
 });
 
-import { SignedInScreen } from '../SignedInScreen';
+import { ProfileScreen } from '../ProfileScreen';
 
 const profile = {
   name: 'Ana',
@@ -26,11 +26,11 @@ const profile = {
   interests: [{ code: 'music', labels: { es: 'Música', en: 'Music' } }],
 };
 
-describe('SignedInScreen', () => {
+describe('ProfileScreen', () => {
   it('muestra un loading mientras carga el perfil', async () => {
     mockUseMyProfile = jest.fn().mockReturnValue({ status: 'loading', profile: null });
 
-    const { getByText } = await render(<SignedInScreen />);
+    const { getByText } = await render(<ProfileScreen />);
 
     expect(getByText('Cargando...')).toBeTruthy();
   });
@@ -38,7 +38,7 @@ describe('SignedInScreen', () => {
   it('muestra los datos del perfil y el botón de cerrar sesión', async () => {
     mockUseMyProfile = jest.fn().mockReturnValue({ status: 'ready', profile });
 
-    const { getByText } = await render(<SignedInScreen />);
+    const { getByText } = await render(<ProfileScreen />);
 
     expect(getByText('Ana')).toBeTruthy();
     expect(getByText('30')).toBeTruthy();
@@ -65,7 +65,7 @@ describe('SignedInScreen', () => {
       },
     });
 
-    const { getAllByText } = await render(<SignedInScreen />);
+    const { getAllByText } = await render(<ProfileScreen />);
 
     expect(getAllByText('—').length).toBeGreaterThanOrEqual(5);
   });
@@ -74,7 +74,7 @@ describe('SignedInScreen', () => {
     const reload = jest.fn();
     mockUseMyProfile = jest.fn().mockReturnValue({ status: 'error', profile: null, reload });
 
-    const { getByText } = await render(<SignedInScreen />);
+    const { getByText } = await render(<ProfileScreen />);
     expect(getByText('No pudimos cargar tu perfil.')).toBeTruthy();
 
     await fireEvent.press(getByText('Reintentar'));

@@ -1,6 +1,4 @@
 import { StatusBar } from 'expo-status-bar';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
 import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
@@ -8,15 +6,11 @@ import { SignOutButton } from '@/features/auth/SignOutButton';
 
 import { useMyProfile } from './useMyProfile';
 
-// Structural placeholder for the signed-in experience: just shows the profile that was created
-// at registration so the user can see the session works. Navigation and real UI come later.
-export function SignedInScreen() {
+// Structural placeholder for the Profile tab: shows the profile that was created at registration.
+// The tab header supplies the title; real UI and editing come later.
+export function ProfileScreen() {
   const { t, i18n } = useTranslation();
   const { status, profile, reload } = useMyProfile();
-
-  useEffect(() => {
-    SplashScreen.hide();
-  }, []);
 
   const empty = t('profile.empty');
 
@@ -47,8 +41,6 @@ export function SignedInScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>{t('profile.title')}</Text>
-
       {status === 'loading' ? <Text>{t('common.loading')}</Text> : null}
 
       {status === 'error' ? (
@@ -75,13 +67,8 @@ const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     backgroundColor: '#fff',
-    justifyContent: 'center',
     padding: 24,
     gap: 12,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
   },
   row: {
     gap: 2,
