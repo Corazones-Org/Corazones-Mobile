@@ -2,7 +2,6 @@ import {
   BIO_MAX_LENGTH,
   validateAge,
   validateBio,
-  validateInstagram,
   validateName,
 } from '../profileValidation';
 
@@ -53,35 +52,5 @@ describe('validateBio', () => {
       ok: false,
       error: 'bioTooLong',
     });
-  });
-});
-
-describe('validateInstagram', () => {
-  it('es opcional: vacío se guarda como null', () => {
-    expect(validateInstagram('')).toEqual({ ok: true, value: null });
-    expect(validateInstagram('  ')).toEqual({ ok: true, value: null });
-    expect(validateInstagram('@')).toEqual({ ok: true, value: null });
-  });
-
-  it('acepta un usuario con o sin arroba', () => {
-    expect(validateInstagram('ana.perez_1')).toEqual({ ok: true, value: 'ana.perez_1' });
-    expect(validateInstagram('@ana.perez_1')).toEqual({ ok: true, value: 'ana.perez_1' });
-  });
-
-  it('extrae el usuario de un link de Instagram', () => {
-    expect(validateInstagram('https://www.instagram.com/ana.perez/')).toEqual({
-      ok: true,
-      value: 'ana.perez',
-    });
-    expect(validateInstagram('instagram.com/ana.perez?igsh=abc')).toEqual({
-      ok: true,
-      value: 'ana.perez',
-    });
-  });
-
-  it('rechaza caracteres inválidos y más de 30 caracteres', () => {
-    expect(validateInstagram('ana perez')).toEqual({ ok: false, error: 'instagramInvalid' });
-    expect(validateInstagram('ana$')).toEqual({ ok: false, error: 'instagramInvalid' });
-    expect(validateInstagram('a'.repeat(31))).toEqual({ ok: false, error: 'instagramInvalid' });
   });
 });

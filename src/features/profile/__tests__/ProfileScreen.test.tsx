@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import '@/i18n';
@@ -28,26 +29,40 @@ jest.mock('@/features/auth/AuthProvider', () => ({
   useAuth: () => ({ session: { user: { id: 'user-1' } } }),
 }));
 
+jest.mock('@/features/auth/SignOutButton', () => {
+  const { Text } = require('react-native');
+  return { SignOutButton: () => <Text>SignOutButton</Text> };
+});
+
 jest.mock('../ProfileProvider', () => ({
   useProfile: () => ({ status: 'ready', profile: mockProfile, reload: mockReload }),
 }));
 
 import { ToastProvider } from '@/components/Toast/ToastProvider';
-import { EditProfileScreen } from '../EditProfileScreen';
+import { ProfileScreen } from '../ProfileScreen';
 
 const metrics = {
   frame: { x: 0, y: 0, width: 390, height: 844 },
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
 };
 
-const navigation = { navigate: jest.fn(), goBack: jest.fn() };
+let mockOnBlur: () => void = () => {};
+const navigation = {
+  navigate: jest.fn(),
+  goBack: jest.fn(),
+  addListener: jest.fn((event: string, handler: () => void) => {
+    if (event === 'blur') {
+      mockOnBlur = handler;
+    }
+    return jest.fn();
+  }),
+};
 
 function makeProfile(overrides: Record<string, unknown> = {}) {
   return {
     name: 'Ana',
     age: 30,
     bio: 'Hola, soy Ana',
-    instagram: 'ana.p',
     complete: true,
     onboardingComplete: true,
     genderCode: 'female',
@@ -57,6 +72,7 @@ function makeProfile(overrides: Record<string, unknown> = {}) {
       { code: 'music', labels: { es: 'Música' } },
       { code: 'travel', labels: { es: 'Viajes' } },
     ],
+    outingTypes: [{ code: 'dinner', labels: { es: 'Cena' } }],
     ...overrides,
   };
 }
@@ -65,7 +81,7 @@ function renderScreen() {
   return render(
     <SafeAreaProvider initialMetrics={metrics}>
       <ToastProvider>
-        <EditProfileScreen navigation={navigation as never} route={{} as never} />
+        <ProfileScreen navigation={navigation as never} route={{} as never} />
       </ToastProvider>
     </SafeAreaProvider>
   );
@@ -75,7 +91,7 @@ const field = (label: string) => screen.getByLabelText(label);
 const type = (label: string, text: string) => fireEvent.changeText(field(label), text);
 const advance = (ms: number) => act(async () => jest.advanceTimersByTime(ms));
 
-describe('EditProfileScreen', () => {
+describe('ProfileScreen', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
@@ -108,8 +124,7 @@ describe('EditProfileScreen', () => {
     expect(field('Nombre').props.value).toBe('Ana');
     expect(field('Edad').props.value).toBe('30');
     expect(field('Sobre mí').props.value).toBe('Hola, soy Ana');
-    expect(field('Instagram').props.value).toBe('ana.p');
-    expect(screen.getByText('Editar perfil')).toBeTruthy();
+    expect(screen.getByText('Mi perfil')).toBeTruthy();
   });
 
   it('no tiene botón de guardar', async () => {
@@ -148,6 +163,29 @@ describe('EditProfileScreen', () => {
       expect(mockUpdate).toHaveBeenCalledWith('user-1', { name: 'Anita' });
     });
 
+    it('una bio escrita de a poco se guarda completa, en un solo guardado', async () => {
+      await renderScreen();
+
+      for (const text of ['H', 'Ho', 'Hol', 'Hola, soy Ana. Me gusta viajar.']) {
+        await type('Sobre mí', text);
+        await advance(200);
+      }
+      expect(mockUpdate).not.toHaveBeenCalled();
+      await advance(800);
+
+      expect(mockUpdate).toHaveBeenCalledTimes(1);
+      expect(mockUpdate).toHaveBeenCalledWith('user-1', { bio: 'Hola, soy Ana. Me gusta viajar.' });
+    });
+
+    it('al cambiar de tab (la pantalla pierde el foco) guarda lo pendiente sin esperar', async () => {
+      await renderScreen();
+
+      await type('Sobre mí', 'Hola, soy Ana');
+      await act(async () => mockOnBlur());
+
+      expect(mockUpdate).toHaveBeenCalledWith('user-1', { bio: 'Hola, soy Ana' });
+    });
+
     it('guarda la edad como número', async () => {
       await renderScreen();
 
@@ -164,15 +202,6 @@ describe('EditProfileScreen', () => {
       await advance(800);
 
       expect(mockUpdate).toHaveBeenCalledWith('user-1', { bio: null });
-    });
-
-    it('limpia el usuario de Instagram antes de guardarlo', async () => {
-      await renderScreen();
-
-      await type('Instagram', '@ana.perez');
-      await advance(800);
-
-      expect(mockUpdate).toHaveBeenCalledWith('user-1', { instagram: 'ana.perez' });
     });
 
     it('junta varios campos tipeados seguidos en un solo guardado', async () => {
@@ -230,15 +259,6 @@ describe('EditProfileScreen', () => {
       expect(mockUpdate).not.toHaveBeenCalled();
     });
 
-    it('un Instagram con caracteres inválidos muestra el error y no se guarda', async () => {
-      await renderScreen();
-
-      await type('Instagram', 'ana perez!');
-      await advance(2000);
-
-      expect(screen.getByText('Usá solo letras, números, puntos y guiones bajos.')).toBeTruthy();
-      expect(mockUpdate).not.toHaveBeenCalled();
-    });
   });
 
   describe('género y preferencia', () => {
@@ -316,6 +336,26 @@ describe('EditProfileScreen', () => {
     });
   });
 
+  describe('tipo de salida', () => {
+    it('muestra los tipos elegidos y abre la pantalla para editarlos', async () => {
+      await renderScreen();
+
+      expect(screen.getByText('Tipo de salida')).toBeTruthy();
+      expect(screen.getByText('Cena')).toBeTruthy();
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Editar tipo de salida' }));
+
+      expect(navigation.navigate).toHaveBeenCalledWith('EditOutingTypes');
+    });
+
+    it('sin tipos elegidos invita a elegirlos', async () => {
+      mockProfile = makeProfile({ outingTypes: [] });
+      await renderScreen();
+
+      expect(screen.getByText('Elegí tu tipo de salida')).toBeTruthy();
+    });
+  });
+
   describe('intereses', () => {
     it('muestra los intereses elegidos y abre la pantalla para editarlos', async () => {
       await renderScreen();
@@ -336,11 +376,47 @@ describe('EditProfileScreen', () => {
     });
   });
 
-  it('el botón de volver vuelve a la pantalla anterior', async () => {
-    await renderScreen();
+  describe('es la pantalla de la tab Perfil', () => {
+    it('no tiene botón de volver ni de editar: ya es la edición', async () => {
+      await renderScreen();
 
-    await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+      expect(screen.queryByRole('button', { name: 'Volver' })).toBeNull();
+      expect(screen.queryByRole('button', { name: 'Editar perfil' })).toBeNull();
+    });
 
-    expect(navigation.goBack).toHaveBeenCalledTimes(1);
+    it('no tiene el aviso de fotos, el título de preferencias ni el campo de Instagram', async () => {
+      await renderScreen();
+
+      expect(screen.queryByText('Las fotos se guardan al momento.')).toBeNull();
+      expect(screen.queryByText('Preferencias')).toBeNull();
+      expect(screen.queryByLabelText('Instagram')).toBeNull();
+    });
+
+    it('ordena: fotos, género y "Busco", información básica, intereses', async () => {
+      await renderScreen();
+
+      const tree = JSON.stringify(screen.toJSON());
+      const at = (text: string) => tree.indexOf(text);
+      expect(at('Eliminar foto')).toBeGreaterThan(-1);
+      expect(at('Eliminar foto')).toBeLessThan(at('Tu género'));
+      expect(at('Tu género')).toBeLessThan(at('Busco'));
+      expect(at('Busco')).toBeLessThan(at('Información básica'));
+      expect(at('Información básica')).toBeLessThan(at('Intereses'));
+      expect(at('Intereses')).toBeLessThan(at('Tipo de salida'));
+    });
+
+    it('tiene el botón de cerrar sesión', async () => {
+      await renderScreen();
+
+      expect(screen.getByText('SignOutButton')).toBeTruthy();
+    });
+
+    it('deja lugar abajo para que el contenido se pueda desplazar por encima de la barra flotante', async () => {
+      await renderScreen();
+
+      const style = StyleSheet.flatten(screen.getByTestId('profile-scroll').props.contentContainerStyle);
+      // 34 (safe area) + 24 (gap) + 64 (bar) + 32 (air)
+      expect(style.paddingBottom).toBe(154);
+    });
   });
 });

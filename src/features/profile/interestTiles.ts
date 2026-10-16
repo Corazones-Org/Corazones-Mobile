@@ -25,9 +25,3 @@ const INTEREST_TILES: Record<string, { icon: IconName; tone: ChipTone }> = {
 const FALLBACK = { icon: 'heart' as IconName, tone: 'primary' as ChipTone };
 
 export const interestTile = (code: string) => INTEREST_TILES[code] ?? FALLBACK;
-
-// Labels come from the database in every supported language; Spanish is always present.
-export const interestLabel = (
-  { code, labels }: { code: string; labels: Record<string, string> },
-  language: string
-) => labels[language] ?? labels.es ?? code;

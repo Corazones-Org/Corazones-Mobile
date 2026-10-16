@@ -89,12 +89,12 @@ export function InfoRow({
 
   const rowStyle = [
     styles.row,
-    { gap: spacing[3], paddingHorizontal: spacing[4], paddingVertical: spacing[2], borderBottomColor: colors.border },
+    { gap: spacing[4], paddingHorizontal: spacing[5], paddingVertical: spacing[4], borderBottomColor: colors.border },
     error && { backgroundColor: colors.errorSoft },
   ];
   const leading = icon ? (
     <View style={styles.icon}>
-      <Icon name={icon} size={22} color={error ? colors.errorText : colors.textPrimary} />
+      <Icon name={icon} size={24} color={error ? colors.errorText : colors.textPrimary} />
     </View>
   ) : null;
 
@@ -125,17 +125,17 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    minHeight: 60,
+    minHeight: 80,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   icon: {
-    width: 28,
+    width: 32,
     alignItems: 'center',
   },
   body: {
     flex: 1,
     minWidth: 0,
-    gap: 1,
+    gap: 4,
   },
   inputRow: {
     flexDirection: 'row',
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     minHeight: 24,
   },
   multiline: {
-    minHeight: 72,
+    minHeight: 64,
     textAlignVertical: 'top',
   },
   counter: {

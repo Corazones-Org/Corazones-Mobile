@@ -1,4 +1,5 @@
-import { interestLabel, interestTile } from '../interestTiles';
+import { catalogLabel } from '../catalog';
+import { interestTile } from '../interestTiles';
 
 // Codes seeded in the `interests` table.
 const SEEDED_CODES = [
@@ -18,12 +19,12 @@ describe('interestTile', () => {
   });
 });
 
-describe('interestLabel', () => {
+describe('catalogLabel', () => {
   const interest = { code: 'music', labels: { es: 'Música', en: 'Music' } };
 
   it('usa el idioma pedido, o español, o el código', () => {
-    expect(interestLabel(interest, 'en')).toBe('Music');
-    expect(interestLabel(interest, 'fr')).toBe('Música');
-    expect(interestLabel({ code: 'music', labels: {} }, 'fr')).toBe('music');
+    expect(catalogLabel(interest, 'en')).toBe('Music');
+    expect(catalogLabel(interest, 'fr')).toBe('Música');
+    expect(catalogLabel({ code: 'music', labels: {} }, 'fr')).toBe('music');
   });
 });

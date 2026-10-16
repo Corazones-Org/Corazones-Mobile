@@ -25,6 +25,7 @@ const profile = {
   partnerPreferenceCode: null,
   photoPaths: [],
   interests: [],
+  outingTypes: [],
 };
 
 const wrapper = ({ children }: { children: ReactNode }) => (

@@ -13,8 +13,11 @@ jest.mock('@/lib/supabase', () => ({
 
 import {
   addMyInterest,
+  addMyOutingType,
   fetchInterestsCatalog,
+  fetchOutingTypesCatalog,
   removeMyInterest,
+  removeMyOutingType,
   updateMyProfile,
 } from '../api';
 
@@ -40,7 +43,6 @@ describe('edit profile api', () => {
         name: 'Ana',
         age: 30,
         bio: null,
-        instagram: 'ana',
         genderId: 2,
         partnerPreferenceId: 1,
       });
@@ -50,7 +52,6 @@ describe('edit profile api', () => {
         name: 'Ana',
         age: 30,
         bio: null,
-        instagram: 'ana',
         gender_id: 2,
         partner_preference_id: 1,
       });
@@ -140,6 +141,68 @@ describe('edit profile api', () => {
       mockEq.mockReturnValue({ eq: secondEq });
 
       await expect(removeMyInterest('user-1', 7)).rejects.toBeTruthy();
+    });
+  });
+
+  describe('outing types ("Tipo de salida")', () => {
+    it('fetchOutingTypesCatalog pide los tipos activos en orden', async () => {
+      mockSelect.mockReturnValue({ eq: mockSelectEq });
+      mockSelectEq.mockReturnValue({ order: mockOrder });
+      mockOrder.mockResolvedValue({
+        data: [{ id: 17, code: 'hotel_encounter', labels: { es: 'Encuentro en hotel' } }],
+        error: null,
+      });
+
+      const types = await fetchOutingTypesCatalog();
+
+      expect(mockFrom).toHaveBeenCalledWith('outing_types');
+      expect(mockSelect).toHaveBeenCalledWith('id, code, labels');
+      expect(mockSelectEq).toHaveBeenCalledWith('active', true);
+      expect(mockOrder).toHaveBeenCalledWith('sort_order');
+      expect(types).toEqual([{ id: 17, code: 'hotel_encounter', labels: { es: 'Encuentro en hotel' } }]);
+    });
+
+    it('fetchOutingTypesCatalog lanza si Supabase devuelve error', async () => {
+      mockSelect.mockReturnValue({ eq: mockSelectEq });
+      mockSelectEq.mockReturnValue({ order: mockOrder });
+      mockOrder.mockResolvedValue({ data: null, error: { message: 'boom' } });
+
+      await expect(fetchOutingTypesCatalog()).rejects.toBeTruthy();
+    });
+
+    it('addMyOutingType inserta una fila del usuario', async () => {
+      mockInsert.mockResolvedValue({ error: null });
+
+      await addMyOutingType('user-1', 5);
+
+      expect(mockFrom).toHaveBeenCalledWith('profile_outing_types');
+      expect(mockInsert).toHaveBeenCalledWith({ user_id: 'user-1', outing_type_id: 5 });
+    });
+
+    it('addMyOutingType lanza si la DB lo rechaza', async () => {
+      mockInsert.mockResolvedValue({ error: { message: 'outing type 5 is not active' } });
+
+      await expect(addMyOutingType('user-1', 5)).rejects.toBeTruthy();
+    });
+
+    it('removeMyOutingType borra solo esa fila del usuario', async () => {
+      const secondEq = jest.fn().mockResolvedValue({ error: null });
+      mockDelete.mockReturnValue({ eq: mockEq });
+      mockEq.mockReturnValue({ eq: secondEq });
+
+      await removeMyOutingType('user-1', 5);
+
+      expect(mockFrom).toHaveBeenCalledWith('profile_outing_types');
+      expect(mockEq).toHaveBeenCalledWith('user_id', 'user-1');
+      expect(secondEq).toHaveBeenCalledWith('outing_type_id', 5);
+    });
+
+    it('removeMyOutingType lanza si Supabase devuelve error', async () => {
+      const secondEq = jest.fn().mockResolvedValue({ error: { message: 'boom' } });
+      mockDelete.mockReturnValue({ eq: mockEq });
+      mockEq.mockReturnValue({ eq: secondEq });
+
+      await expect(removeMyOutingType('user-1', 5)).rejects.toBeTruthy();
     });
   });
 });

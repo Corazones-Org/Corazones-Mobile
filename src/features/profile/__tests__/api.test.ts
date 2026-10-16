@@ -29,7 +29,6 @@ describe('fetchMyProfile', () => {
         name: 'Ana',
         age: 30,
         bio: 'Hola',
-        instagram: 'ana',
         profile_complete: true,
         onboarding_completed_at: '2026-10-15T12:00:00Z',
         gender: { code: 'female' },
@@ -39,6 +38,9 @@ describe('fetchMyProfile', () => {
           { storage_path: 'u/a.jpg', sort_order: 0 },
         ],
         interests: [{ interest: { code: 'music', labels: { es: 'Música', en: 'Music' } } }],
+        outing_types: [
+          { outing_type: { code: 'dinner', labels: { es: 'Cena', en: 'Dinner' } } },
+        ],
       },
       error: null,
     });
@@ -49,13 +51,13 @@ describe('fetchMyProfile', () => {
       name: 'Ana',
       age: 30,
       bio: 'Hola',
-      instagram: 'ana',
       complete: true,
       onboardingComplete: true,
       genderCode: 'female',
       partnerPreferenceCode: 'men',
       photoPaths: ['u/a.jpg', 'u/b.jpg'],
       interests: [{ code: 'music', labels: { es: 'Música', en: 'Music' } }],
+      outingTypes: [{ code: 'dinner', labels: { es: 'Cena', en: 'Dinner' } }],
     });
   });
 
@@ -65,13 +67,13 @@ describe('fetchMyProfile', () => {
         name: 'Ana',
         age: null,
         bio: null,
-        instagram: null,
         profile_complete: false,
         onboarding_completed_at: null,
         gender: null,
         partner_preference: null,
         photos: [],
         interests: [],
+        outing_types: [],
       },
       error: null,
     });
@@ -81,11 +83,11 @@ describe('fetchMyProfile', () => {
     expect(profile).toMatchObject({
       name: 'Ana',
       age: null,
-      instagram: null,
       genderCode: null,
       partnerPreferenceCode: null,
       photoPaths: [],
       interests: [],
+      outingTypes: [],
       complete: false,
       onboardingComplete: false,
     });

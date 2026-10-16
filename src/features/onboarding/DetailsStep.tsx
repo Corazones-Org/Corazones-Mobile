@@ -72,11 +72,15 @@ export function DetailsStep({ navigation }: NativeStackScreenProps<OnboardingSta
     }
   };
 
+  // When onboarding is resumed here (the photos were saved in an earlier session) this screen is the
+  // first of the stack, so there is nothing to go back to: open the photos step instead.
+  const goBack = () => (navigation.canGoBack() ? navigation.goBack() : navigation.navigate('Photos'));
+
   return (
     <StepLayout
       testID="details-step"
       topBar={
-        <TopBar onBack={navigation.goBack}>
+        <TopBar onBack={goBack}>
           <Stepper steps={2} current={2} />
         </TopBar>
       }

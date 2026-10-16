@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 export type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -7,18 +8,28 @@ type Options<Patch> = {
   save: (patch: Patch) => Promise<void>;
   // Quiet time after the last change before saving (typing).
   delay?: number;
+  // A save with no answer after this long counts as failed, so one stuck request can't block every
+  // later save.
+  timeout?: number;
+  // After a failure the same changes are sent again by themselves, up to MAX_AUTO_RETRIES times,
+  // this long apart.
+  retryDelay?: number;
   // Called after a save, once nothing else is waiting to be saved.
   onSettled?: () => void;
 };
 
 const SAVED_VISIBLE_MS = 2000;
+const MAX_AUTO_RETRIES = 3;
 
 // Autosave for a form: changes are merged into one patch and sent after a pause (or right away),
 // one request at a time, so answers can't arrive out of order and the latest value of a field wins.
-// A failed patch is kept: it is retried by `retry` or sent again together with the next change.
+// A failed or timed-out patch is kept and retried by itself a few times, by `retry`, or together
+// with the next change. Pending changes are also sent when the app goes to the background.
 export function useAutosave<Patch extends Record<string, unknown>>({
   save,
   delay = 800,
+  timeout = 15000,
+  retryDelay = 5000,
   onSettled,
 }: Options<Patch>) {
   const [status, setStatus] = useState<AutosaveStatus>('idle');
@@ -26,6 +37,8 @@ export function useAutosave<Patch extends Record<string, unknown>>({
   const pending = useRef<Partial<Patch>>({});
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const savedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retries = useRef(0);
   const inFlight = useRef<Promise<void> | null>(null);
   const mounted = useRef(true);
   // The latest callbacks, so the functions below stay stable between renders.
@@ -46,6 +59,27 @@ export function useAutosave<Patch extends Record<string, unknown>>({
       timer.current = null;
     }
   };
+  const clearRetryTimer = () => {
+    if (retryTimer.current) {
+      clearTimeout(retryTimer.current);
+      retryTimer.current = null;
+    }
+  };
+
+  const sendWithTimeout = (patch: Patch) =>
+    new Promise<void>((resolve, reject) => {
+      const stuck = setTimeout(() => reject(new Error('Autosave timed out')), timeout);
+      saveRef.current(patch).then(
+        () => {
+          clearTimeout(stuck);
+          resolve();
+        },
+        (error) => {
+          clearTimeout(stuck);
+          reject(error);
+        }
+      );
+    });
 
   // Sends what is pending, then whatever arrived while it was in flight.
   const drain = useCallback((): Promise<void> => {
@@ -57,21 +91,30 @@ export function useAutosave<Patch extends Record<string, unknown>>({
         clearTimeout(savedTimer.current);
         savedTimer.current = null;
       }
+      clearRetryTimer();
       try {
         while (Object.keys(pending.current).length > 0) {
           const patch = pending.current;
           pending.current = {};
           show('saving');
           try {
-            await saveRef.current(patch as Patch);
+            await sendWithTimeout(patch as Patch);
           } catch (error) {
             console.error('Autosave error:', error);
             // Keep the failed values, unless the user already changed them again.
             pending.current = { ...patch, ...pending.current };
             show('error');
+            if (mounted.current && retries.current < MAX_AUTO_RETRIES) {
+              retries.current += 1;
+              retryTimer.current = setTimeout(() => {
+                retryTimer.current = null;
+                void drain();
+              }, retryDelay);
+            }
             return;
           }
         }
+        retries.current = 0;
         // After leaving the screen there is nobody to show "saved" to.
         if (mounted.current) {
           show('saved');
@@ -84,7 +127,8 @@ export function useAutosave<Patch extends Record<string, unknown>>({
     };
     inFlight.current = run();
     return inFlight.current;
-  }, [show]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [show, retryDelay, timeout]);
 
   const flush = useCallback(async () => {
     clearTimer();
@@ -94,6 +138,9 @@ export function useAutosave<Patch extends Record<string, unknown>>({
   const queue = useCallback(
     (patch: Partial<Patch>, { immediate = false }: { immediate?: boolean } = {}) => {
       pending.current = { ...pending.current, ...patch };
+      // A new change starts over: it replaces any automatic retry that was waiting.
+      clearRetryTimer();
+      retries.current = 0;
       clearTimer();
       if (immediate) {
         void drain();
@@ -116,7 +163,21 @@ export function useAutosave<Patch extends Record<string, unknown>>({
     pending.current = next;
   }, []);
 
-  const retry = flush;
+  // Manual retry (the "Reintentar" button): counts as a fresh start.
+  const retry = useCallback(async () => {
+    retries.current = 0;
+    await flush();
+  }, [flush]);
+
+  // Closing or backgrounding the app within the pause would lose what was just typed.
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        void flush();
+      }
+    });
+    return () => subscription.remove();
+  }, [flush]);
 
   useEffect(() => {
     mounted.current = true;
@@ -124,6 +185,7 @@ export function useAutosave<Patch extends Record<string, unknown>>({
       // Leaving the screen must not lose what was typed in the last moments.
       mounted.current = false;
       clearTimer();
+      clearRetryTimer();
       if (savedTimer.current) {
         clearTimeout(savedTimer.current);
       }

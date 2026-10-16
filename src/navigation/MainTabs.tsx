@@ -36,6 +36,8 @@ export function MainTabs() {
         options={{
           title: t('profile.title'),
           tabBarLabel: t('tabs.profile'),
+          // The screen draws its own top bar (title and autosave status).
+          headerShown: false,
         }}
       />
     </Tab.Navigator>
