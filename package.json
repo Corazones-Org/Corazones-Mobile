@@ -52,7 +52,8 @@
     "clean": "expo prebuild --clean",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "theme": "node scripts/generate-theme.js"
+    "theme": "node scripts/generate-theme.js",
+    "eas:android": "eas build --profile preview --platform android"
   },
   "private": true,
   "jest": {
