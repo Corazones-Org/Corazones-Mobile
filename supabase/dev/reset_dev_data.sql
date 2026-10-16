@@ -6,7 +6,7 @@
 -- Erased:  users and their Google identities and sessions (auth), profiles, photos rows,
 --          interests picked, time slot registrations, audit log, and the photo files of the
 --          develop bucket (step 2).
--- Kept:    the catalogs (genders, partner_preferences, interests, time_slots), the schema, the
+-- Kept:    the catalogs (genders, partner_preferences, interests, outing_types, time_slots), the schema, the
 --          production bucket and the dashboard's .emptyFolderPlaceholder files.
 --
 -- Step 1 (data) and step 2 (files) are separate transactions: if step 2 fails, the data is
@@ -22,6 +22,7 @@ begin;
 -- deleted_by / changed_by, so those rows must be gone before the users are.
 delete from time_slot_registrations;
 delete from profile_interests;
+delete from profile_outing_types;
 delete from profile_photos;
 delete from profiles;
 -- The registrations delete above fires the audit trigger, so the audit log is cleared after it.
@@ -47,6 +48,7 @@ select
   (select count(*) from profiles)                  as profiles,
   (select count(*) from profile_photos)            as profile_photos,
   (select count(*) from profile_interests)         as profile_interests,
+  (select count(*) from profile_outing_types)      as profile_outing_types,
   (select count(*) from time_slot_registrations)   as time_slot_registrations,
   (select count(*) from audit_log)                 as audit_log,
   (select count(*) from genders)                   as genders_kept,

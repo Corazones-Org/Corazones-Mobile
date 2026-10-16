@@ -50,4 +50,10 @@ describe('TopBar', () => {
     expect(getByText('stepper')).toBeTruthy();
     expect(queryByText('Título')).toBeNull();
   });
+
+  it('muestra un elemento propio a la derecha (por ejemplo el estado de guardado)', async () => {
+    const { getByText } = await render(<TopBar title="x" right={<Text>Guardado</Text>} />);
+
+    expect(getByText('Guardado')).toBeTruthy();
+  });
 });

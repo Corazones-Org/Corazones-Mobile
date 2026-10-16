@@ -1,0 +1,23 @@
+import { render } from '@testing-library/react-native';
+
+import { Badge } from '../Badge';
+
+describe('Badge', () => {
+  it('muestra el texto y el ícono', async () => {
+    const { getByText, getByTestId } = await render(
+      <Badge tone="info" icon="plane">
+        Viajes
+      </Badge>
+    );
+
+    expect(getByText('Viajes')).toBeTruthy();
+    expect(getByTestId('icon-plane', { hidden: true })).toBeTruthy();
+  });
+
+  it('funciona sin ícono', async () => {
+    const { getByText, queryByTestId } = await render(<Badge>Viajes</Badge>);
+
+    expect(getByText('Viajes')).toBeTruthy();
+    expect(queryByTestId('icon-plane', { hidden: true })).toBeNull();
+  });
+});

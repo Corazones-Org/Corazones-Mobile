@@ -38,6 +38,9 @@ describe('fetchMyProfile', () => {
           { storage_path: 'u/a.jpg', sort_order: 0 },
         ],
         interests: [{ interest: { code: 'music', labels: { es: 'Música', en: 'Music' } } }],
+        outing_types: [
+          { outing_type: { code: 'dinner', labels: { es: 'Cena', en: 'Dinner' } } },
+        ],
       },
       error: null,
     });
@@ -54,6 +57,7 @@ describe('fetchMyProfile', () => {
       partnerPreferenceCode: 'men',
       photoPaths: ['u/a.jpg', 'u/b.jpg'],
       interests: [{ code: 'music', labels: { es: 'Música', en: 'Music' } }],
+      outingTypes: [{ code: 'dinner', labels: { es: 'Cena', en: 'Dinner' } }],
     });
   });
 
@@ -69,6 +73,7 @@ describe('fetchMyProfile', () => {
         partner_preference: null,
         photos: [],
         interests: [],
+        outing_types: [],
       },
       error: null,
     });
@@ -82,6 +87,7 @@ describe('fetchMyProfile', () => {
       partnerPreferenceCode: null,
       photoPaths: [],
       interests: [],
+      outingTypes: [],
       complete: false,
       onboardingComplete: false,
     });

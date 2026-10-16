@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 
 import '@/i18n';
 
@@ -67,6 +67,16 @@ jest.mock('@/features/onboarding/api', () => ({
   saveOnboardingDetails: jest.fn(),
 }));
 
+jest.mock('@/features/profile/api', () => ({
+  updateMyProfile: jest.fn(),
+  fetchInterestsCatalog: jest.fn().mockResolvedValue([]),
+  addMyInterest: jest.fn(),
+  removeMyInterest: jest.fn(),
+  fetchOutingTypesCatalog: jest.fn().mockResolvedValue([]),
+  addMyOutingType: jest.fn(),
+  removeMyOutingType: jest.fn(),
+}));
+
 jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
 
 jest.mock('@react-native-google-signin/google-signin', () => ({
@@ -82,6 +92,7 @@ import * as SplashScreen from 'expo-splash-screen';
 
 import { ToastProvider } from '@/components/Toast/ToastProvider';
 import { signOut } from '@/features/auth/api';
+import { fetchMyPhotos } from '@/features/onboarding/api';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { ProfileProvider } from '@/features/profile/ProfileProvider';
 import { Navigation } from '../Navigation';
@@ -97,6 +108,7 @@ function makeProfile(overrides: Record<string, unknown> = {}) {
     partnerPreferenceCode: null,
     photoPaths: [] as string[],
     interests: [] as { code: string; labels: Record<string, string> }[],
+    outingTypes: [] as { code: string; labels: Record<string, string> }[],
     ...overrides,
   };
 }
@@ -167,7 +179,7 @@ describe('Navigation', () => {
 
     await fireEvent.press(screen.getByRole('tab', { name: 'Perfil' }));
 
-    expect(await screen.findByText('Ana')).toBeTruthy();
+    expect(await screen.findByTestId('profile-screen')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Perfil', selected: true })).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Inicio', selected: false })).toBeTruthy();
 
@@ -175,6 +187,49 @@ describe('Navigation', () => {
 
     expect(await screen.findByTestId('main-screen')).toBeTruthy();
     expect(screen.getByRole('tab', { name: 'Inicio', selected: true })).toBeTruthy();
+  });
+
+  describe('perfil', () => {
+    const openProfile = async () => {
+      await renderNavigation(signedIn);
+      await fireEvent.press(screen.getByRole('tab', { name: 'Perfil' }));
+      return screen.findByTestId('profile-screen');
+    };
+
+    it('la tab Perfil muestra directamente la edición del perfil', async () => {
+      await openProfile();
+
+      expect(screen.getByLabelText('Nombre').props.value).toBe('Ana');
+      expect(screen.queryByRole('button', { name: 'Editar perfil' })).toBeNull();
+    });
+
+    it('desde el perfil se llega a los intereses y se vuelve', async () => {
+      await openProfile();
+      await fireEvent.press(screen.getByRole('button', { name: 'Editar intereses' }));
+
+      expect(await screen.findByTestId('edit-interests-screen')).toBeTruthy();
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+
+      expect(await screen.findByTestId('profile-screen')).toBeTruthy();
+    });
+
+    it('desde el perfil se llega al tipo de salida y se vuelve', async () => {
+      await openProfile();
+      await fireEvent.press(screen.getByRole('button', { name: 'Editar tipo de salida' }));
+
+      expect(await screen.findByTestId('edit-outing-types-screen')).toBeTruthy();
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+
+      expect(await screen.findByTestId('profile-screen')).toBeTruthy();
+    });
+
+    it('durante el onboarding no se puede llegar al perfil', async () => {
+      await renderNavigation(signedIn, readyProfile({ onboardingComplete: false }));
+
+      expect(screen.queryByTestId('profile-screen')).toBeNull();
+    });
   });
 
   it('al autenticarse desde el ingreso pasa a la pantalla principal', async () => {
@@ -191,13 +246,13 @@ describe('Navigation', () => {
 
     await fireEvent.press(screen.getByText('Perfil'));
 
-    expect(await screen.findByText('Ana')).toBeTruthy();
+    expect(await screen.findByTestId('profile-screen')).toBeTruthy();
   });
 
   it('permite volver a la tab principal desde el perfil', async () => {
     await renderNavigation(signedIn);
     await fireEvent.press(screen.getByText('Perfil'));
-    await screen.findByText('Ana');
+    await screen.findByTestId('profile-screen');
 
     await fireEvent.press(screen.getByText('Inicio'));
 
@@ -267,6 +322,31 @@ describe('Navigation', () => {
 
       expect(screen.getByTestId('details-step')).toBeTruthy();
       expect(screen.queryByTestId('photos-step')).toBeNull();
+    });
+
+    it('al retomar en el segundo paso, volver lleva a las fotos en vez de romper', async () => {
+      await renderNavigation(
+        signedIn,
+        readyProfile({ onboardingComplete: false, photoPaths: ['users/u/profile/a.webp'] })
+      );
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+
+      expect(await screen.findByTestId('photos-step')).toBeTruthy();
+    });
+
+    it('si se empezó por las fotos, volver desde el segundo paso también vuelve a las fotos', async () => {
+      (fetchMyPhotos as jest.Mock).mockResolvedValueOnce([
+        { id: 'row-1', path: 'users/u/profile/a.webp', sortOrder: 0 },
+      ]);
+      await renderNavigation(signedIn, readyProfile({ onboardingComplete: false }));
+      await waitFor(() => expect(screen.getByRole('button', { name: 'Continuar' })).toBeEnabled());
+      await fireEvent.press(screen.getByRole('button', { name: 'Continuar' }));
+      await screen.findByTestId('details-step');
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+
+      expect(await screen.findByTestId('photos-step')).toBeTruthy();
     });
 
     it('con el onboarding completo manda a la app', async () => {

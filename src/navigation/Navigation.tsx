@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useToast } from '@/components/Toast/ToastProvider';
 import { signOut } from '@/features/auth/api';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { EditInterestsScreen } from '@/features/profile/EditInterestsScreen';
+import { EditOutingTypesScreen } from '@/features/profile/EditOutingTypesScreen';
 import { useProfile } from '@/features/profile/ProfileProvider';
 import { WelcomeScreen } from '@/features/welcome/WelcomeScreen';
 import { MainTabs } from './MainTabs';
@@ -19,7 +21,7 @@ const RootStack = createNativeStackNavigator<RootStackParamList>();
 //  - signed out, or signed in while the profile loads: welcome (what the native splash hands off to)
 //  - profile could not be loaded: a toast, and the user is signed out (back to welcome). Errors are
 //    never a screen of their own.
-//  - onboarding not done: onboarding; done: the app
+//  - onboarding not done: onboarding; done: the app (the tabs, plus the interests and outing-type screens on top)
 export function Navigation() {
   const { t } = useTranslation();
   const { show } = useToast();
@@ -45,7 +47,14 @@ export function Navigation() {
   } else if (!profile.profile.onboardingComplete) {
     screen = <RootStack.Screen name="Onboarding" component={OnboardingStack} />;
   } else {
-    screen = <RootStack.Screen name="MainTabs" component={MainTabs} />;
+    // The picker screens sit on top of the tabs (no tab bar), so it only exists for finished profiles.
+    screen = (
+      <>
+        <RootStack.Screen name="MainTabs" component={MainTabs} />
+        <RootStack.Screen name="EditInterests" component={EditInterestsScreen} />
+        <RootStack.Screen name="EditOutingTypes" component={EditOutingTypesScreen} />
+      </>
+    );
   }
 
   return (

@@ -1,3 +1,5 @@
+import type { CatalogItem } from './catalog';
+
 // Shape the app uses for the signed-in user's own profile.
 export type MyProfile = {
   name: string | null;
@@ -10,5 +12,7 @@ export type MyProfile = {
   genderCode: string | null;
   partnerPreferenceCode: string | null;
   photoPaths: string[];
-  interests: { code: string; labels: Record<string, string> }[];
+  interests: CatalogItem[];
+  // "Tipo de salida": the kinds of plan the person is up for.
+  outingTypes: CatalogItem[];
 };

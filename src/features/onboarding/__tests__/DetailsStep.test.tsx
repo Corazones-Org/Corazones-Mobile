@@ -34,7 +34,7 @@ const metrics = {
   insets: { top: 47, left: 0, right: 0, bottom: 34 },
 };
 
-const navigation = { navigate: jest.fn(), goBack: jest.fn() };
+const navigation = { navigate: jest.fn(), goBack: jest.fn(), canGoBack: jest.fn() };
 
 function renderStep() {
   return render(
@@ -176,6 +176,7 @@ describe('DetailsStep', () => {
   });
 
   it('tiene botón de volver y no tiene "Saltar"', async () => {
+    navigation.canGoBack.mockReturnValue(true);
     await renderStep();
     await screen.findByText('Tu género');
 
@@ -183,6 +184,17 @@ describe('DetailsStep', () => {
 
     expect(navigation.goBack).toHaveBeenCalledTimes(1);
     expect(screen.queryByText('Saltar')).toBeNull();
+  });
+
+  it('si se retomó el onboarding acá (no hay pantalla anterior), volver lleva a las fotos sin romper', async () => {
+    navigation.canGoBack.mockReturnValue(false);
+    await renderStep();
+    await screen.findByText('Tu género');
+
+    await fireEvent.press(screen.getByRole('button', { name: 'Volver' }));
+
+    expect(navigation.goBack).not.toHaveBeenCalled();
+    expect(navigation.navigate).toHaveBeenCalledWith('Photos');
   });
 
   it('no muestra textos de ayuda debajo del botón; solo "Cerrar sesión"', async () => {

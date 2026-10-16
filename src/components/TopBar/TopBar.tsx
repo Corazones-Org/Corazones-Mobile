@@ -14,11 +14,13 @@ export type TopBarProps = {
   back?: boolean;
   action?: string;
   onAction?: () => void;
+  // Replaces the action with any element (for example the autosave status).
+  right?: ReactNode;
   // Replaces the title (e.g. the onboarding Stepper).
   children?: ReactNode;
 };
 
-export function TopBar({ title, onBack, back = true, action, onAction, children }: TopBarProps) {
+export function TopBar({ title, onBack, back = true, action, onAction, right, children }: TopBarProps) {
   const { t } = useTranslation();
   const { colors, spacing, typography } = useTheme();
 
@@ -52,8 +54,9 @@ export function TopBar({ title, onBack, back = true, action, onAction, children 
         )}
       </View>
 
-      <View style={[styles.side, styles.sideEnd]}>
-        {action ? (
+      <View style={[styles.side, styles.sideEnd, right ? styles.sideWide : null]}>
+        {right ?? null}
+        {!right && action ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={action}
@@ -83,6 +86,11 @@ const styles = StyleSheet.create({
   },
   sideEnd: {
     justifyContent: 'flex-end',
+  },
+  // An element of its own may need more than the standard width.
+  sideWide: {
+    width: undefined,
+    minWidth: 72,
   },
   center: {
     flex: 1,

@@ -25,21 +25,45 @@
 	"profile": {
 		"title": "Mi perfil",
 		"retry": "Reintentar",
-		"empty": "—",
-		"fields": {
-			"name": "Nombre",
-			"age": "Edad",
-			"gender": "Género",
-			"interestedIn": "Busco",
-			"bio": "Sobre mí",
-			"interests": "Intereses",
-			"photos": "Fotos",
-			"complete": "Perfil completo"
-		},
-		"yes": "Sí",
-		"no": "No",
 		"loadErrorTitle": "No pudimos cargar tu perfil",
-		"loadErrorMessage": "Volvé a iniciar sesión."
+		"loadErrorMessage": "Volvé a iniciar sesión.",
+		"edit": {
+			"title": "Editar perfil",
+			"lastPhoto": "Necesitás al menos una foto.",
+			"basicInfo": "Información básica",
+			"fields": {
+				"name": "Nombre",
+				"age": "Edad",
+				"bio": "Sobre mí"
+			},
+			"placeholders": {
+				"name": "Tu nombre",
+				"age": "Tu edad",
+				"bio": "Contanos algo sobre vos"
+			},
+			"interests": {
+				"title": "Intereses",
+				"empty": "Elegí tus intereses",
+				"subtitle": "Seleccioná tus intereses (máx. {{max}}) · {{count}} elegidos",
+				"open": "Editar intereses",
+				"loadErrorTitle": "No pudimos cargar los intereses"
+			},
+			"errors": {
+				"nameRequired": "Ingresá tu nombre.",
+				"ageInvalid": "Ingresá una edad entre 18 y 99.",
+				"bioTooLong": "Tu descripción puede tener hasta 500 caracteres."
+			},
+			"saveErrorTitle": "No pudimos guardar los cambios",
+			"tryAgain": "Probá de nuevo.",
+			"loadErrorTitle": "No pudimos cargar las opciones",
+			"outingTypes": {
+				"title": "Tipo de salida",
+				"empty": "Elegí tu tipo de salida",
+				"subtitle": "Elegí qué planes te copan · {{count}} elegidos",
+				"open": "Editar tipo de salida",
+				"loadErrorTitle": "No pudimos cargar los tipos de salida"
+			}
+		}
 	},
 	"partnerPreferences": {
 		"men": "Hombres",
@@ -67,6 +91,13 @@
 			"add": "Agregar foto",
 			"remove": "Eliminar foto",
 			"uploadFailed": "No se pudo subir",
+			"retry": "Reintentar"
+		},
+		"saveStatus": {
+			"saving": "Guardando…",
+			"saved": "Guardado",
+			"error": "No se pudo guardar",
+			"retryHint": "Tocá para reintentar",
 			"retry": "Reintentar"
 		}
 	},
