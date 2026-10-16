@@ -1,35 +1,41 @@
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useLiquidTabBarClearance } from '@/components/LiquidTabBar/clearance';
+import type { MainTabParamList } from '@/navigation/types';
+import { useTheme } from '@/theme/ThemeProvider';
 
-// Placeholder for the screen users land on after signing in. The real content (countdown to the
-// next time slot) arrives with COR-5.
-export function MainScreen() {
-  const { t } = useTranslation();
+import { HowItWorks } from './HowItWorks';
+import { ProfileSummaryCard } from './ProfileSummaryCard';
+
+type Props = BottomTabScreenProps<MainTabParamList, 'Main'>;
+
+// The Main tab (the screen users land on after signing in). The countdown to the next turn goes
+// above these cards and arrives with COR-5.
+export function MainScreen({ navigation }: Props) {
+  const { colors, spacing } = useTheme();
   const bottomClearance = useLiquidTabBarClearance();
 
   return (
-    <View testID="main-screen" style={[styles.container, { paddingBottom: bottomClearance }]}>
-      <Text style={styles.title}>{t('main.title')}</Text>
-      <Text>{t('main.comingSoon')}</Text>
+    <SafeAreaView
+      testID="main-screen"
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          padding: spacing[4],
+          paddingBottom: bottomClearance,
+          gap: spacing[4],
+        }}
+      >
+        <HowItWorks />
+        <ProfileSummaryCard onPress={() => navigation.navigate('Profile')} />
+      </ScrollView>
       <StatusBar style="auto" />
-    </View>
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    padding: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-});

@@ -28,6 +28,8 @@ export function MainTabs() {
         options={{
           title: t('company.title'),
           tabBarLabel: t('tabs.main'),
+          // The screen scrolls its own content from the top, without a navigator header.
+          headerShown: false,
         }}
       />
       <Tab.Screen
