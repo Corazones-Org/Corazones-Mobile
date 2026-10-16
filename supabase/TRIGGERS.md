@@ -21,6 +21,7 @@ order by event_object_table, trigger_name;
 | `profiles_update_onboarding_completed` | `profiles` | before insert or update | `update_onboarding_completed()` | Sets `onboarding_completed_at` once, when the profile has a gender, a partner preference and at least one photo. Never cleared; a value written by the client is ignored. The app's gate reads it. | 0018 |
 | `profile_photos_refresh_profile_complete` | `profile_photos` | after insert, update or delete | `refresh_profile_complete()` | Touches the owner's `profiles` row so the trigger above recomputes `profile_complete`. | 0015 |
 | `profile_interests_check` | `profile_interests` | before insert | `check_profile_interest()` | Rejects inactive interests and more than 10 interests per profile. | 0016 |
+| `profile_outing_types_check` | `profile_outing_types` | before insert | `check_profile_outing_type()` | Rejects inactive outing types (no maximum per profile). | 0019 |
 | `time_slot_registrations_set_updated_at` | `time_slot_registrations` | before update | `set_updated_at()` | Stamps `updated_at` and `updated_by`. | 0004 |
 | `time_slot_registrations_audit` | `time_slot_registrations` | after insert, update or delete | `log_audit_event()` | Writes the full old and new row to `audit_log` (consent history). | 0004 |
 
@@ -36,9 +37,9 @@ Chains to keep in mind:
 | Function | Purpose | Created in |
 | --- | --- | --- |
 | `my_active_time_slot_registrations()` | The caller's active slot and day pairs. `security definer` so RLS policies can use it without recursion. | 0013 |
-| `can_view_profile(target_user_id)` | Visibility rule: the owner, or a user registered in the same slot on the same day. Used by the `profiles`, `profile_photos`, `profile_interests` and storage policies. | 0017 |
+| `can_view_profile(target_user_id)` | Visibility rule: the owner, or a user registered in the same slot on the same day. Used by the `profiles`, `profile_photos`, `profile_interests`, `profile_outing_types` and storage policies. | 0017 |
 
 ## Notes
 
 - `handle_new_user()`, `update_profile_complete()` and `refresh_profile_complete()` are `security definer`, with EXECUTE revoked from `public`, so they run only as triggers and cannot be called as an RPC from the client.
-- Applied to the Supabase project as of 2026-10-15: 0001 to 0017 (0018 is written and waiting to be applied). 0013 and 0015 to 0017 were run by hand in the SQL editor, so Supabase's migration history table does not list them.
+- Applied to the Supabase project as of 2026-10-16: 0001 to 0019 (0019, outing types, was applied through the Supabase MCP, so it is in the migration history table; 0020, which puts hotel encounter first, is written and waiting to be applied). 0013 and 0015 to 0017 were run by hand in the SQL editor, so Supabase's migration history table does not list them.
