@@ -76,8 +76,21 @@
 		"navigation": "Navegación principal"
 	},
 	"main": {
-		"title": "Pantalla principal",
-		"comingSoon": "Próximamente: tu próximo turno."
+		"howItWorks": {
+			"title": "¿Cómo funciona?",
+			"steps": {
+				"1": "Anotate al turno",
+				"2": "Conocé a los participantes",
+				"3": "Hacé Match",
+				"4": "Hablá durante 30 minutos con tu Match",
+				"5": "Si ambos aceptan, se conocen"
+			}
+		},
+		"profileCard": {
+			"title": "Completá tu perfil",
+			"subtitle": "Un perfil completo aumenta tus posibilidades de tener más matches.",
+			"open": "Abrir mi perfil"
+		}
 	},
 	"components": {
 		"topBar": {
