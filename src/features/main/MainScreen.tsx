@@ -13,7 +13,7 @@ import { ProfileSummaryCard } from './ProfileSummaryCard';
 type Props = BottomTabScreenProps<MainTabParamList, 'Main'>;
 
 // The Main tab (the screen users land on after signing in). The countdown to the next turn goes
-// above these cards and arrives with COR-5.
+// above these cards and arrives with COR-17.
 export function MainScreen({ navigation }: Props) {
   const { colors, spacing } = useTheme();
   const bottomClearance = useLiquidTabBarClearance();
