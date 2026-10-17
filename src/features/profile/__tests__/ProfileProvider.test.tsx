@@ -89,6 +89,30 @@ describe('ProfileProvider', () => {
     expect(result.current.status).toBe('ready');
   });
 
+  it('si dos recargas se cruzan, gana la última pedida aunque la anterior conteste después', async () => {
+    let answerOld: (value: typeof profile) => void = () => {};
+    (fetchMyProfile as jest.Mock)
+      .mockResolvedValueOnce(profile)
+      // First reload: slow, still carries the old name when it finally answers.
+      .mockReturnValueOnce(new Promise((resolve) => (answerOld = resolve)))
+      // Second reload (after a later save): fast, carries the new name.
+      .mockResolvedValueOnce({ ...profile, name: 'Nombre nuevo' });
+    const { result } = await renderHook(() => useProfile(), { wrapper });
+    await waitFor(() => expect(result.current.status).toBe('ready'));
+
+    await act(async () => {
+      void result.current.reload();
+    });
+    await act(async () => {
+      await result.current.reload();
+    });
+    expect(result.current.profile?.name).toBe('Nombre nuevo');
+
+    await act(async () => answerOld({ ...profile, name: 'Nombre viejo' }));
+
+    expect(result.current.profile?.name).toBe('Nombre nuevo');
+  });
+
   it('no pide nada sin sesión', async () => {
     mockUseAuth.mockReturnValue({ session: null });
 
