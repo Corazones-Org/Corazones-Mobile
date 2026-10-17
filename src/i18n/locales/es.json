@@ -130,5 +130,52 @@
 			"saveErrorTitle": "No pudimos guardar tus datos",
 			"tryAgain": "Probá de nuevo."
 		}
+	},
+	"timeSlots": {
+		"card": {
+			"next": "Próximo turno",
+			"startsIn": "Empieza en",
+			"register": "Anotarme",
+			"registerLater": "Vas a poder anotarte una hora antes de que empiece.",
+			"registered": "Anotado",
+			"waitingTitle": "Tu turno de las {{time}} empieza en",
+			"used": "Turno usado",
+			"usedMessage": "Ya usaste tu turno, garpá para más",
+			"usedRenews": "Tu cupo se renueva en",
+			"noSlots": "Por ahora no hay turnos disponibles. Volvé a mirar más tarde.",
+			"inProgress": "Turno de las {{time}} en curso",
+			"endsIn": "Termina en {{countdown}}",
+			"loadError": "No pudimos cargar el próximo turno.",
+			"retry": "Reintentar",
+			"loading": "Cargando el próximo turno"
+		},
+		"notices": {
+			"outOfZone": "Todavía no llegamos a tu ciudad",
+			"locationDenied": "Necesitamos tu ubicación para saber si estás en una ciudad habilitada. No la guardamos.",
+			"locationBlocked": "Necesitamos tu ubicación para saber si estás en una ciudad habilitada. Activala en los ajustes del teléfono.",
+			"locationUnavailable": "No pudimos ubicarte. Revisá que el GPS esté prendido y probá de nuevo."
+		},
+		"toasts": {
+			"profileIncompleteTitle": "Completá tu perfil",
+			"profileIncompleteMessage": "Para anotarte necesitás tu nombre, tus fotos, tu género y a quién buscás.",
+			"openProfile": "Ir al perfil",
+			"registeredTitle": "¡Listo, estás anotado!",
+			"registeredMessage": "Tu turno de las {{time}} ya es tuyo.",
+			"errorTitle": "No pudimos anotarte"
+		},
+		"errors": {
+			"profileIncomplete": "Completá tu perfil para anotarte.",
+			"disclaimerRequired": "Tenés que aceptar para anotarte.",
+			"outOfZone": "Todavía no llegamos a tu ciudad.",
+			"slotInactive": "Este turno no está disponible por ahora.",
+			"alreadyUsedToday": "Ya usaste tu turno, garpá para más.",
+			"unknown": "Algo salió mal. Probá de nuevo en un rato."
+		},
+		"disclaimer": {
+			"title": "Antes de anotarte",
+			"message": "Más vale estar cambiado y bañado, listo para salir.",
+			"accept": "Aceptar",
+			"cancel": "Cancelar"
+		}
 	}
 }

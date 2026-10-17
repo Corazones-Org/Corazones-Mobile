@@ -4,6 +4,7 @@ import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useLiquidTabBarClearance } from '@/components/LiquidTabBar/clearance';
+import { NextTimeSlotCard } from '@/features/timeSlots/NextTimeSlotCard';
 import type { MainTabParamList } from '@/navigation/types';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -12,8 +13,8 @@ import { ProfileSummaryCard } from './ProfileSummaryCard';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Main'>;
 
-// The Main tab (the screen users land on after signing in). The countdown to the next turn goes
-// above these cards and arrives with COR-17.
+// The Main tab (the screen users land on after signing in): the countdown to the next turn (and
+// signing up for it) above the explanation and the profile card.
 export function MainScreen({ navigation }: Props) {
   const { colors, spacing } = useTheme();
   const bottomClearance = useLiquidTabBarClearance();
@@ -32,6 +33,7 @@ export function MainScreen({ navigation }: Props) {
           gap: spacing[4],
         }}
       >
+        <NextTimeSlotCard onOpenProfile={() => navigation.navigate('Profile')} />
         <HowItWorks />
         <ProfileSummaryCard onPress={() => navigation.navigate('Profile')} />
       </ScrollView>

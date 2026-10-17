@@ -79,6 +79,9 @@ jest.mock('@/features/profile/api', () => ({
 
 jest.mock('expo-image-picker', () => ({ launchImageLibraryAsync: jest.fn() }));
 
+// The card is tested on its own; here the navigator only needs the Main screen to render.
+jest.mock('@/features/timeSlots/NextTimeSlotCard', () => ({ NextTimeSlotCard: () => null }));
+
 jest.mock('@react-native-google-signin/google-signin', () => ({
   GoogleSignin: { configure: jest.fn(), hasPlayServices: jest.fn().mockResolvedValue(true) },
 }));
