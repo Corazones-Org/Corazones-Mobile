@@ -6,7 +6,7 @@
 -- Erased:  users and their Google identities and sessions (auth), profiles, photos rows,
 --          interests picked, time slot registrations, audit log, and the photo files of the
 --          develop bucket (step 2).
--- Kept:    the catalogs (genders, partner_preferences, interests, outing_types, time_slots), the schema, the
+-- Kept:    the catalogs (genders, partner_preferences, interests, outing_types, time_slots, zones), the schema, the
 --          production bucket and the dashboard's .emptyFolderPlaceholder files.
 --
 -- Step 1 (data) and step 2 (files) are separate transactions: if step 2 fails, the data is
@@ -55,5 +55,6 @@ select
   (select count(*) from partner_preferences)       as partner_preferences_kept,
   (select count(*) from interests)                 as interests_kept,
   (select count(*) from time_slots)                as time_slots_kept,
+  (select count(*) from zones)                     as zones_kept,
   (select count(*) from storage.objects
      where bucket_id = 'develop' and name <> 'users/.emptyFolderPlaceholder') as develop_files_left;
