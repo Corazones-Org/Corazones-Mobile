@@ -37,16 +37,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<State>(LOADING);
   // Answers that arrive after the user changed (sign-out, another account) are ignored.
   const activeUserId = useRef<string | undefined>(undefined);
+  // Each save asks for the profile again, so two asks can overlap. Only the last one asked may
+  // answer: an older, slower answer would put back the values from before the latest save.
+  const lastRequest = useRef(0);
 
   const load = useCallback(async (id: string) => {
+    const request = ++lastRequest.current;
+    const isCurrent = () => activeUserId.current === id && lastRequest.current === request;
     try {
       const profile = await fetchMyProfile(id);
-      if (activeUserId.current === id) {
+      if (isCurrent()) {
         setState({ status: 'ready', profile });
       }
     } catch (error) {
       console.error('Profile fetch error:', error);
-      if (activeUserId.current === id) {
+      if (isCurrent()) {
         setState({ status: 'error', profile: null });
       }
     }

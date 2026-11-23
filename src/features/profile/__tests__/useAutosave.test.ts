@@ -292,6 +292,24 @@ describe('useAutosave', () => {
     });
   });
 
+  it('un flush sin nada pendiente (cambiar de pestaña) no traba los guardados siguientes', async () => {
+    const save = jest.fn().mockResolvedValue(undefined);
+    const onSettled = jest.fn();
+    const { result } = await setup(save, { onSettled });
+
+    // What the Profile tab does when it loses focus with nothing typed.
+    await act(async () => result.current.flush());
+    expect(save).not.toHaveBeenCalled();
+    expect(onSettled).not.toHaveBeenCalled();
+
+    await act(async () => result.current.queue({ name: 'Tomas Agustin' }));
+    await act(async () => jest.advanceTimersByTime(800));
+
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(save).toHaveBeenCalledWith({ name: 'Tomas Agustin' });
+    expect(onSettled).toHaveBeenCalledTimes(1);
+  });
+
   it('al pasar la app a segundo plano guarda lo pendiente, sin esperar la pausa', async () => {
     let listener: (state: string) => void = () => {};
     jest.spyOn(AppState, 'addEventListener').mockImplementation(((_: string, handler: (s: string) => void) => {

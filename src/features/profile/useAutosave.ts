@@ -86,6 +86,10 @@ export function useAutosave<Patch extends Record<string, unknown>>({
     if (inFlight.current) {
       return inFlight.current;
     }
+    // Nothing to send (for example, the tab lost focus with nothing typed): do not start a run.
+    if (Object.keys(pending.current).length === 0) {
+      return Promise.resolve();
+    }
     const run = async () => {
       if (savedTimer.current) {
         clearTimeout(savedTimer.current);
@@ -125,6 +129,8 @@ export function useAutosave<Patch extends Record<string, unknown>>({
         inFlight.current = null;
       }
     };
+    // `run` never gets here with nothing to send, so it always waits for the save before its
+    // `finally` clears `inFlight`; this assignment is therefore always the first.
     inFlight.current = run();
     return inFlight.current;
     // eslint-disable-next-line react-hooks/exhaustive-deps

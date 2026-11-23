@@ -39,7 +39,19 @@ Chains to keep in mind:
 | `my_active_time_slot_registrations()` | The caller's active slot and day pairs. `security definer` so RLS policies can use it without recursion. | 0013 |
 | `can_view_profile(target_user_id)` | Visibility rule: the owner, or a user registered in the same slot on the same day. Used by the `profiles`, `profile_photos`, `profile_interests`, `profile_outing_types` and storage policies. | 0017 |
 
+## Functions called by the app (RPC) and their helpers
+
+Time slot sign up (COR-17). Every time comes from the database clock; the app never sends a slot or a time. Errors are raised with a stable code as the message (`profile_incomplete`, `disclaimer_required`, `invalid_location`, `out_of_zone`, `slot_inactive`, `already_used_today`).
+
+| Function | Who can call it | Purpose | Created in |
+| --- | --- | --- | --- |
+| `get_time_slot_status()` | signed-in users | Server time, zone, the next enabled slot (with the day's quota state) and the caller's registrations that have not ended. | 0021 |
+| `register_for_next_time_slot(lat, lng, disclaimer)` | signed-in users | Signs the caller up for the next slot: profile and name, disclaimer, city (position is checked, never stored), slot enabled, one per day. The only way to write `time_slot_registrations`. | 0021 |
+| `compute_time_slot_status(user, now)`, `register_time_slot_at(user, now, lat, lng, disclaimer)` | nobody from the client | The same logic with `now` as a parameter, so `supabase/tests/0021_time_slot_registration.test.sql` can try any moment. | 0021 |
+| `next_active_time_slot(zone, now)` | nobody from the client | The first enabled slot starting on a local hour after `now`, with how many hours ahead it is. | 0021 |
+
 ## Notes
 
 - `handle_new_user()`, `update_profile_complete()` and `refresh_profile_complete()` are `security definer`, with EXECUTE revoked from `public`, so they run only as triggers and cannot be called as an RPC from the client.
+- 0021 (time slot registration: PostGIS, `zones`, registrations with `starts_at`/`ends_at`/`zone_id`, the RPCs above) is written; it is applied to the project after review. Its checks live in `supabase/tests/`.
 - Applied to the Supabase project as of 2026-10-16: 0001 to 0019 (0019, outing types, was applied through the Supabase MCP, so it is in the migration history table; 0020, which puts hotel encounter first, is written and waiting to be applied). 0013 and 0015 to 0017 were run by hand in the SQL editor, so Supabase's migration history table does not list them.

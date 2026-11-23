@@ -52,6 +52,12 @@
         {
           "photosPermission": "Corazones necesita acceder a tus fotos para que elijas las de tu perfil."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Corazones usa tu ubicación para saber si estás en una ciudad habilitada. No la guardamos al anotarte."
+        }
       ]
     ],
     "extra": {
