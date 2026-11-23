@@ -1,6 +1,6 @@
--- Checks for migration 0021 (time slot registration). Not a migration: run it by hand, in the SQL
--- editor or through the Supabase MCP, AFTER 0021 is applied (or pasted right after the migration's
--- text, to try it before applying it).
+-- Checks for the time slot registration (migrations 0021 and 0023). Not a migration: run it by
+-- hand, in the SQL editor or through the Supabase MCP, AFTER both are applied (or pasted right after
+-- the migrations' text, to try them before applying them).
 --
 -- It ends by raising an exception on purpose, so everything it creates (users, profiles,
 -- registrations) is rolled back and nothing stays in the database. Read the result in the error:
@@ -49,20 +49,29 @@ begin
   assert (select count(*) from zones where is_default) = 1, 'one default zone';
   assert (select timezone from zones where code = 'buenos_aires') = 'America/Argentina/Buenos_Aires', 'BA timezone';
   assert (select count(*) from time_slots where active) = 24, 'all 24 slots start active';
-  v_checks := v_checks + 3;
+  assert (select count(*) from time_slots where duration_minutes = 55) = 24, 'every slot lasts 55 minutes';
+  assert (select match_radius_km from zones where code = 'buenos_aires') = 80, 'BA match radius 80 km';
+  begin
+    update time_slots set duration_minutes = 61 where start_time = '21:00';
+    assert false, 'a slot longer than an hour should be rejected';
+  exception when check_violation then
+    null; -- expected
+  end;
+  v_checks := v_checks + 6;
 
   -- Status: next slot is the next hour on the dot --------------------------------------------------
   -- 20:37 Argentina = 23:37 UTC -> next slot 21:00 Argentina.
   v_status := compute_time_slot_status(v_user, '2026-10-16 23:37:00+00');
   assert v_status #>> '{next_slot,local_time}' = '21:00', 'next slot at 20:37 is 21:00, got ' || (v_status #>> '{next_slot,local_time}');
   assert (v_status #>> '{next_slot,starts_at}')::timestamptz = '2026-10-17 00:00:00+00', 'starts_at is 21:00 ART in UTC';
-  assert (v_status #>> '{next_slot,ends_at}')::timestamptz = '2026-10-17 02:00:00+00', 'a slot lasts 2 hours';
+  assert (v_status #>> '{next_slot,ends_at}')::timestamptz = '2026-10-17 00:55:00+00', 'a slot lasts 55 minutes';
   assert (v_status #>> '{next_slot,quota_used}')::boolean = false, 'quota is free';
   assert (v_status #>> '{next_slot,quota_resets_at}')::timestamptz = '2026-10-17 03:00:00+00', 'quota renews 00:00 ART';
   assert (v_status #>> '{next_slot,registrable_from}')::timestamptz = '2026-10-16 23:00:00+00', 'registrable from 1 h before';
   assert jsonb_array_length(v_status -> 'registrations') = 0, 'no registrations yet';
   assert v_status #>> '{zone,code}' = 'buenos_aires', 'default zone before any registration';
-  v_checks := v_checks + 8;
+  assert (v_status #>> '{next_slot,registered_count}')::int = 0, 'nobody signed up for 21:00 yet';
+  v_checks := v_checks + 9;
 
   -- Exactly on the hour: the slot starting right now is not the next one (sign up closes at start).
   v_status := compute_time_slot_status(v_user, '2026-10-17 00:00:00+00');
@@ -129,7 +138,7 @@ begin
   assert exists (
     select 1 from time_slot_registrations
     where user_id = v_user and time_slot_id = v_slot_21 and day = '2026-10-16'
-      and starts_at = '2026-10-17 00:00:00+00' and ends_at = '2026-10-17 02:00:00+00'
+      and starts_at = '2026-10-17 00:00:00+00' and ends_at = '2026-10-17 00:55:00+00'
       and disclaimer_accepted_at = '2026-10-16 23:37:00+00'
       and zone_id = (select id from zones where code = 'buenos_aires')
   ), 'registration row has slot, day, times, consent and zone';
@@ -138,6 +147,12 @@ begin
     where table_name = 'time_slot_registrations' and (column_name ilike '%lat%' or column_name ilike '%lng%' or column_name ilike '%location%')
   ), 'no column can hold the position';
   v_checks := v_checks + 4;
+
+  -- The others see how many signed up for that slot (only the number), before signing up.
+  v_status := compute_time_slot_status(v_user_b, '2026-10-16 23:40:00+00');
+  assert (v_status #>> '{next_slot,registered_count}')::int = 1, 'B sees 1 person signed up for 21:00, got ' || (v_status #>> '{next_slot,registered_count}');
+  assert not (v_status #>> '{next_slot,quota_used}')::boolean, 'B has not signed up';
+  v_checks := v_checks + 2;
 
   -- The audit log kept the consent.
   assert exists (select 1 from audit_log where table_name = 'time_slot_registrations' and action = 'INSERT'), 'audit row';
@@ -177,18 +192,23 @@ begin
   end;
   v_checks := v_checks + 1;
 
-  -- A slot from yesterday still running after midnight does NOT block the new day --------------------
-  -- A registered the 21:00 slot (16th, ends 23:00 ART). Use C: register the 23:00 slot at 22:30 ART
-  -- (day = 16th, ends 01:00 ART on the 17th), then at 00:30 ART (17th) sign up for 01:00.
+  -- A slot ends at :55: the last 5 minutes of the hour are free to sign up again ---------------------
+  -- C signs up at 22:30 ART for 23:00 (day 16th, ends 23:55). At 23:30 it is in progress; at 23:57 it
+  -- has ended and C signs up for 00:00, which belongs to the 17th (a new day's quota).
   v_status := register_time_slot_at(v_user_c, '2026-10-17 01:30:00+00', c_obelisco_lat, c_obelisco_lng, true);
   assert v_status #>> '{registrations,0,local_time}' = '23:00', 'C registered for 23:00 at 22:30';
-  v_status := compute_time_slot_status(v_user_c, '2026-10-17 03:30:00+00');
-  assert jsonb_array_length(v_status -> 'registrations') = 1, 'C: the 23:00 slot is still running at 00:30';
-  assert (v_status #>> '{registrations,0,starts_at}')::timestamptz <= '2026-10-17 03:30:00+00'
-     and (v_status #>> '{registrations,0,ends_at}')::timestamptz > '2026-10-17 03:30:00+00', 'it is in progress';
-  assert (v_status #>> '{next_slot,quota_used}')::boolean = false, 'new day: quota is free again';
-  v_status := register_time_slot_at(v_user_c, '2026-10-17 03:30:00+00', c_obelisco_lat, c_obelisco_lng, true);
-  assert jsonb_array_length(v_status -> 'registrations') = 2, 'C: in progress + the new one';
+  v_status := compute_time_slot_status(v_user_c, '2026-10-17 02:30:00+00');
+  assert jsonb_array_length(v_status -> 'registrations') = 1
+     and (v_status #>> '{registrations,0,starts_at}')::timestamptz <= '2026-10-17 02:30:00+00', 'C: 23:00 in progress at 23:30';
+  assert (v_status #>> '{registrations,0,ends_at}')::timestamptz = '2026-10-17 02:55:00+00', 'the 23:00 slot ends at 23:55';
+  v_status := compute_time_slot_status(v_user_c, '2026-10-17 02:57:00+00');
+  assert jsonb_array_length(v_status -> 'registrations') = 0, 'C: at 23:57 the 23:00 slot has ended';
+  assert v_status #>> '{next_slot,local_time}' = '00:00'
+     and (v_status #>> '{next_slot,quota_used}')::boolean = false, 'C: 00:00 is next and the new day is free';
+  v_status := register_time_slot_at(v_user_c, '2026-10-17 02:57:00+00', c_obelisco_lat, c_obelisco_lng, true);
+  assert jsonb_array_length(v_status -> 'registrations') = 1
+     and v_status #>> '{registrations,0,local_time}' = '00:00', 'C signed up for 00:00 at 23:57';
+  assert (v_status #>> '{next_slot,registered_count}')::int = 2, 'B and C signed up for 00:00, got ' || (v_status #>> '{next_slot,registered_count}');
   -- Once that one is used, no more until the next 00:00.
   begin
     perform register_time_slot_at(v_user_c, '2026-10-17 04:10:00+00', c_obelisco_lat, c_obelisco_lng, true);
@@ -197,7 +217,7 @@ begin
     get stacked diagnostics v_message = message_text;
     assert v_message = 'already_used_today', 'C second of the day: ' || v_message;
   end;
-  v_checks := v_checks + 6;
+  v_checks := v_checks + 8;
 
   -- Switched-off slots -----------------------------------------------------------------------------
   -- Only 19:00 to 02:00 enabled. At 10:00 ART the next enabled slot is 19:00, 9 hours ahead.
@@ -258,7 +278,7 @@ begin
   -- A direct insert from the client is rejected (no insert policy), as is an update of a registration.
   begin
     insert into time_slot_registrations (user_id, time_slot_id, zone_id, day, starts_at, ends_at, disclaimer_accepted_at)
-    select v_user_d, ts.id, z.id, '2026-10-20', '2026-10-20 00:00:00+00', '2026-10-20 02:00:00+00', now()
+    select v_user_d, ts.id, z.id, '2026-10-20', '2026-10-20 00:00:00+00', '2026-10-20 00:55:00+00', now()
     from time_slots ts, zones z where ts.start_time = '21:00' and z.is_default;
     assert false, 'direct insert should be rejected';
   exception when insufficient_privilege then

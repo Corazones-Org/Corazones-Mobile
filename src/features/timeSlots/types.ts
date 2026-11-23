@@ -23,6 +23,8 @@ export type NextTimeSlot = {
   quotaUsed: boolean;
   // When that day's quota renews (00:00 in the zone).
   quotaResetsAt: number;
+  // How many people signed up for this slot in the zone (only the number, never who).
+  registeredCount: number;
 };
 
 export type TimeSlotStatus = {

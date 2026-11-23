@@ -31,15 +31,37 @@ describe('WelcomeScreen', () => {
     mockError = null;
   });
 
-  it('shows the heart and the wordmark while the session is loading, without a sign-in button', async () => {
+  it('shows only the heart while the session is loading, like the native splash', async () => {
     mockUseAuth.mockReturnValue({ status: 'loading', session: null });
 
-    const { getByTestId, getByText, queryByText, queryByTestId } = await render(<WelcomeScreen />);
+    const { getByTestId, queryByText, queryByTestId } = await render(<WelcomeScreen />);
 
     expect(getByTestId('welcome-heart')).toBeTruthy();
-    expect(getByText('Corazones')).toBeTruthy();
+    expect(queryByText('Corazones')).toBeNull();
     expect(queryByText('Continuar con Google')).toBeNull();
     expect(queryByTestId('welcome-divider')).toBeNull();
+  });
+
+  it('shows only the heart while a signed-in profile loads (never the sign-in page)', async () => {
+    mockUseAuth.mockReturnValue({ status: 'signedIn', session: {} });
+
+    const { getByTestId, queryByText, queryByTestId } = await render(<WelcomeScreen />);
+
+    expect(getByTestId('welcome-heart')).toBeTruthy();
+    expect(queryByText('Corazones')).toBeNull();
+    expect(queryByTestId('welcome-divider')).toBeNull();
+  });
+
+  it('turns from the heart into the sign-in page once the user is known to be signed out', async () => {
+    mockUseAuth.mockReturnValue({ status: 'loading', session: null });
+    const { getByText, queryByText, rerender } = await render(<WelcomeScreen />);
+    expect(queryByText('Corazones')).toBeNull();
+
+    mockUseAuth.mockReturnValue({ status: 'signedOut', session: null });
+    await rerender(<WelcomeScreen />);
+
+    await waitFor(() => expect(getByText('Continuar con Google')).toBeTruthy());
+    expect(getByText('Corazones')).toBeTruthy();
   });
 
   it('shows the Google sign-in button once the user is known to be signed out', async () => {
@@ -49,6 +71,7 @@ describe('WelcomeScreen', () => {
 
     expect(getByText('Continuar con Google')).toBeTruthy();
     expect(getByTestId('welcome-heart')).toBeTruthy();
+    expect(getByText('Corazones')).toBeTruthy();
   });
 
   it('shows heart, divider and Google button together in one centered column', async () => {

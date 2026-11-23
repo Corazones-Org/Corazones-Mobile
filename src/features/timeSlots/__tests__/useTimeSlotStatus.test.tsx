@@ -72,6 +72,46 @@ describe('useTimeSlotStatus', () => {
     expect(result.current.state.status).toBe('ready');
   });
 
+  describe('refresco cada minuto (la cantidad de anotados cambia sola)', () => {
+    beforeEach(() => jest.useFakeTimers());
+    afterEach(() => jest.useRealTimers());
+
+    it('pide el estado de nuevo cada 60 segundos mientras está montado', async () => {
+      await setup();
+      await flush();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => jest.advanceTimersByTime(59_000));
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+
+      await act(async () => jest.advanceTimersByTime(1_000));
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+
+      await act(async () => jest.advanceTimersByTime(60_000));
+      expect(mockFetch).toHaveBeenCalledTimes(3);
+    });
+
+    it('no pide nada con la app en segundo plano', async () => {
+      await setup();
+      await flush();
+      await act(async () => appStateListener('background'));
+
+      await act(async () => jest.advanceTimersByTime(120_000));
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('deja de refrescar al desmontarse', async () => {
+      const { unmount } = await setup();
+      await flush();
+      await act(async () => unmount());
+
+      await act(async () => jest.advanceTimersByTime(120_000));
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('al volver de segundo plano pide el estado de nuevo', async () => {
     await setup();
     await flush();
