@@ -179,6 +179,9 @@ export function NextTimeSlotCard({ onOpenProfile }: { onOpenProfile: () => void 
                 {t('timeSlots.card.startsIn')}
               </Text>
               <Countdown target={main.startsAt} clock={clock} />
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                {t('timeSlots.card.registeredCount', { count: main.registeredCount })}
+              </Text>
             </View>
             {notice ? <TipCard icon="pin">{t(NOTICE_KEY[notice])}</TipCard> : null}
             <Button size="lg" block disabled={!main.canRegister} onPress={handleRegisterPress}>
@@ -201,6 +204,11 @@ export function NextTimeSlotCard({ onOpenProfile }: { onOpenProfile: () => void 
               {t('timeSlots.card.waitingTitle', { time: main.localTime })}
             </Text>
             <Countdown target={main.startsAt} clock={clock} />
+            {main.registeredCount != null ? (
+              <Text style={[typography.caption, { color: colors.textSecondary }]}>
+                {t('timeSlots.card.registeredWithYou', { count: main.registeredCount })}
+              </Text>
+            ) : null}
           </View>
         ) : null}
 
@@ -214,6 +222,9 @@ export function NextTimeSlotCard({ onOpenProfile }: { onOpenProfile: () => void 
               {t('timeSlots.card.usedRenews')}
             </Text>
             <Countdown target={main.resetsAt} clock={clock} />
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              {t('timeSlots.card.registeredCountAt', { count: main.registeredCount, time: main.nextLocalTime })}
+            </Text>
           </View>
         ) : null}
 

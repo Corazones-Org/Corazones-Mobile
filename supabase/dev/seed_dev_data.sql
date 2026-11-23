@@ -13,9 +13,11 @@
 --         Sofia (female)     -> men         Valentina (female)  -> women    Lucia (female) -> everyone
 --         Alex (other)       -> men         Sol (other)         -> women    Ale (other)    -> everyone
 --   * Their registrations, relative to now() in the default zone's clock:
---         Juan, Sofia, Lucia      signed up for the NEXT turn (starts at the next hour on the dot)
---         Mateo, Valentina        signed up for the turn that started this hour (in progress)
---         Lucas, Alex             signed up for the turn that started one hour ago (still running)
+--         Juan, Sofia, Lucia      signed up for the NEXT turn (starts at the next hour on the dot):
+--                                 the Main card shows "3 personas anotadas"
+--         Mateo, Valentina        signed up for the turn that started this hour (in progress until
+--                                 :55; a turn lasts 55 minutes)
+--         Lucas, Alex             signed up for the turn that started one hour ago (already ended)
 --         Sol, Ale                not signed up
 --   * Optionally, YOUR account's situation (see "Your account" below), to see each state of the
 --     "Proximo turno" card on the Main screen.
@@ -29,9 +31,9 @@
 --   my_email    the Google account you sign in to the app with (it must have signed in once).
 --   my_scenario 'none'         no registration (the card shows the countdown and "Anotarme")
 --               'waiting'      you are signed up for the next turn ("Anotado", countdown to start)
---               'in_progress'  you are in a turn that started 1 hour ago (turn "en curso"; whether
---                              the card also says "ya usaste tu turno" depends on the day, as
---                              the quota is per day of the turn start)
+--               'in_progress'  you are in this hour's turn (turn "en curso" until :55; from :55 to
+--                              the hour it has ended). The card also says "ya usaste tu turno" unless
+--                              the next turn is tomorrow's, as the quota is per day of the turn start
 --               'used_today'   you already used today's turn earlier ("Ya usaste tu turno, garpa
 --                              para mas" and the countdown to 00:00). Between 23:00 and 24:00
 --                              there is no earlier slot left today, so nothing is created.
@@ -134,7 +136,7 @@ begin
         (v_hour0 + s.off * interval '1 hour') at time zone v_tz + ts.duration_minutes * interval '1 minute',
         now(),
         now()
-      from (select case my_scenario when 'waiting' then 1 else -1 end as off) s
+      from (select case my_scenario when 'waiting' then 1 else 0 end as off) s
       join time_slots ts on ts.start_time = (v_hour0 + s.off * interval '1 hour')::time;
     elsif my_scenario = 'used_today' then
       -- Today's quota is spent by the slot that starts at 00:00 of the day the next turn belongs to.

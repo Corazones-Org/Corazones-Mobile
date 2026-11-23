@@ -1,8 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { Image, LayoutAnimation, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -10,16 +10,18 @@ import { useGoogleSignIn } from '@/features/auth/useGoogleSignIn';
 import { GoogleSignInButton } from '@/features/auth/GoogleSignInButton';
 import { useTheme } from '@/theme/ThemeProvider';
 import {
-  DIVIDER_HEIGHT,
   SPLASH_IMAGE_SIZE,
   WELCOME_GRADIENT_COLORS,
   WELCOME_GRADIENT_LOCATIONS,
 } from './constants';
 import { WelcomeDivider } from './WelcomeDivider';
 
-// First screen of the app: heart and wordmark, then a divider and the Google button, stacked and
-// centered vertically as one block. The block's height is reserved while the session loads, so
-// nothing moves when the sign-in button appears. Replaces the native splash once it is laid out.
+// First screen of the app. While the session (or a signed-in profile) loads it is only the heart,
+// in the same spot as the native splash, so the handoff is invisible and the person sees one splash
+// with the icon alone. Once the person is known to be signed out it turns into the sign-in page:
+// heart and wordmark, then a divider and the Google button, centered vertically as one block. A
+// signed-in person never sees that page: the navigation moves on to the app instead.
+// Replaces the native splash once it is laid out.
 export function WelcomeScreen() {
   const { t } = useTranslation();
   const theme = useTheme();
@@ -28,6 +30,16 @@ export function WelcomeScreen() {
 
   const hideNativeSplash = useCallback(() => SplashScreen.hide(), []);
   const signedOut = status === 'signedOut';
+
+  // Lags `signedOut` by one render so the change can be animated: the heart glides up and the
+  // sign-in block fades in, instead of jumping.
+  const [showSignIn, setShowSignIn] = useState(signedOut);
+  useEffect(() => {
+    if (signedOut !== showSignIn) {
+      LayoutAnimation.configureNext(LayoutAnimation.create(300, 'easeInEaseOut', 'opacity'));
+      setShowSignIn(signedOut);
+    }
+  }, [signedOut, showSignIn]);
 
   return (
     <View testID="welcome-screen" style={styles.container} onLayout={hideNativeSplash}>
@@ -45,17 +57,16 @@ export function WelcomeScreen() {
           style={styles.heart}
           resizeMode="contain"
         />
-        <Text
-          style={[
-            styles.wordmark,
-            { color: theme.colors.onPhoto, fontFamily: theme.typography.body.fontFamily },
-          ]}
-        >
-          {t('company.title')}
-        </Text>
-
-        {signedOut ? (
+        {showSignIn ? (
           <>
+            <Text
+              style={[
+                styles.wordmark,
+                { color: theme.colors.onPhoto, fontFamily: theme.typography.body.fontFamily },
+              ]}
+            >
+              {t('company.title')}
+            </Text>
             <View
               style={[
                 styles.dividerSlot,
@@ -78,13 +89,7 @@ export function WelcomeScreen() {
               ) : null}
             </View>
           </>
-        ) : (
-          <View
-            style={{
-              height: theme.spacing[8] * 2 + DIVIDER_HEIGHT + theme.size.controlLg,
-            }}
-          />
-        )}
+        ) : null}
       </View>
       <StatusBar style="light" />
     </View>

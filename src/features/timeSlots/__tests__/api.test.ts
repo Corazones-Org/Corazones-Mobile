@@ -17,18 +17,19 @@ const rawStatus = {
   next_slot: {
     time_slot_id: 'slot-21',
     starts_at: '2026-10-17T00:00:00+00:00',
-    ends_at: '2026-10-17T02:00:00+00:00',
+    ends_at: '2026-10-17T00:55:00+00:00',
     local_time: '21:00',
     registrable_from: '2026-10-16T23:00:00+00:00',
     quota_used: false,
     quota_resets_at: '2026-10-17T03:00:00+00:00',
+    registered_count: 3,
   },
   registrations: [
     {
       id: 'reg-1',
       time_slot_id: 'slot-21',
       starts_at: '2026-10-17T00:00:00+00:00',
-      ends_at: '2026-10-17T02:00:00+00:00',
+      ends_at: '2026-10-17T00:55:00+00:00',
       local_time: '21:00',
     },
   ],
@@ -50,18 +51,19 @@ describe('fetchTimeSlotStatus', () => {
       nextSlot: {
         timeSlotId: 'slot-21',
         startsAt: Date.parse('2026-10-17T00:00:00Z'),
-        endsAt: Date.parse('2026-10-17T02:00:00Z'),
+        endsAt: Date.parse('2026-10-17T00:55:00Z'),
         localTime: '21:00',
         registrableFrom: Date.parse('2026-10-16T23:00:00Z'),
         quotaUsed: false,
         quotaResetsAt: Date.parse('2026-10-17T03:00:00Z'),
+        registeredCount: 3,
       },
       registrations: [
         {
           id: 'reg-1',
           timeSlotId: 'slot-21',
           startsAt: Date.parse('2026-10-17T00:00:00Z'),
-          endsAt: Date.parse('2026-10-17T02:00:00Z'),
+          endsAt: Date.parse('2026-10-17T00:55:00Z'),
           localTime: '21:00',
         },
       ],

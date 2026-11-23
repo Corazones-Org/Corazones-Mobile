@@ -97,6 +97,26 @@ describe('NextTimeSlotCard', () => {
       expect(button('Anotarme')).toBeTruthy();
     });
 
+    it('muestra cuántas personas hay anotadas antes de anotarse', async () => {
+      mockFetchStatus.mockResolvedValue(makeStatus({ nextSlot: makeNextSlot({ registeredCount: 3 }) }));
+      await renderCard();
+
+      expect(screen.getByText('3 personas anotadas')).toBeTruthy();
+    });
+
+    it('con una sola persona anotada usa el singular', async () => {
+      mockFetchStatus.mockResolvedValue(makeStatus({ nextSlot: makeNextSlot({ registeredCount: 1 }) }));
+      await renderCard();
+
+      expect(screen.getByText('1 persona anotada')).toBeTruthy();
+    });
+
+    it('sin nadie anotado invita a ser la primera persona', async () => {
+      await renderCard();
+
+      expect(screen.getByText('Todavía no se anotó nadie. ¡Sé la primera persona!')).toBeTruthy();
+    });
+
     it('la cuenta regresiva baja de a un segundo', async () => {
       await renderCard();
 
@@ -113,23 +133,29 @@ describe('NextTimeSlotCard', () => {
     });
 
     it('al pasar la hora en punto pasa solo al turno siguiente', async () => {
-      await renderCard();
-      mockFetchStatus.mockResolvedValue(
-        makeStatus({
-          serverNow: SLOT_21_START,
-          nextSlot: makeNextSlot({
-            localTime: '22:00',
-            startsAt: SLOT_21_START + HOUR,
-            endsAt: SLOT_21_START + 3 * HOUR,
-            registrableFrom: SLOT_21_START,
-          }),
-        })
+      // A server that answers with its own clock: 21:00 until the hour, 22:00 from then on (the
+      // card also asks every minute, and each answer moves the clock).
+      mockFetchStatus.mockImplementation(async () =>
+        Date.now() < SLOT_21_START
+          ? makeStatus({ serverNow: Date.now() })
+          : makeStatus({
+              serverNow: Date.now(),
+              nextSlot: makeNextSlot({
+                localTime: '22:00',
+                startsAt: SLOT_21_START + HOUR,
+                endsAt: SLOT_21_START + HOUR + 55 * 60_000,
+                registrableFrom: SLOT_21_START,
+              }),
+            })
       );
+      await renderCard();
 
-      await act(async () => jest.advanceTimersByTime(23 * 60_000));
+      // Minute by minute, so each answer arrives before the next ask (as on a real device).
+      for (let minute = 0; minute < 23; minute += 1) {
+        await act(async () => jest.advanceTimersByTime(60_000));
+      }
       await flush();
 
-      expect(mockFetchStatus).toHaveBeenCalledTimes(2);
       expect(screen.getByText('22:00')).toBeTruthy();
       expect(screen.getByText('01:00:00')).toBeTruthy();
     });
@@ -317,13 +343,38 @@ describe('NextTimeSlotCard', () => {
   describe('otros estados', () => {
     it('anotado esperando', async () => {
       mockFetchStatus.mockResolvedValue(
-        makeStatus({ nextSlot: makeNextSlot({ quotaUsed: true }), registrations: [makeRegistration()] })
+        makeStatus({
+          nextSlot: makeNextSlot({ quotaUsed: true, registeredCount: 1 }),
+          registrations: [makeRegistration()],
+        })
       );
       await renderCard();
 
       expect(screen.getByText('Anotado')).toBeTruthy();
       expect(screen.getByText('Tu turno de las 21:00 empieza en')).toBeTruthy();
+      expect(screen.getByText('Sos la única persona anotada por ahora')).toBeTruthy();
       expect(screen.queryByRole('button', { name: 'Anotarme' })).toBeNull();
+    });
+
+    it('anotado esperando con más gente: cuántas personas hay anotadas, la persona incluida', async () => {
+      mockFetchStatus.mockResolvedValue(
+        makeStatus({
+          nextSlot: makeNextSlot({ quotaUsed: true, registeredCount: 5 }),
+          registrations: [makeRegistration()],
+        })
+      );
+      await renderCard();
+
+      expect(screen.getByText('5 personas anotadas, con vos')).toBeTruthy();
+    });
+
+    it('ya usó el turno: también muestra cuántas personas hay anotadas al próximo', async () => {
+      mockFetchStatus.mockResolvedValue(
+        makeStatus({ nextSlot: makeNextSlot({ quotaUsed: true, registeredCount: 3 }) })
+      );
+      await renderCard();
+
+      expect(screen.getByText('3 personas anotadas al turno de las 21:00')).toBeTruthy();
     });
 
     it('ya usó el turno del día: mensaje y cuenta regresiva hasta las 00:00', async () => {

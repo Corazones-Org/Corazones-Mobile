@@ -14,13 +14,20 @@ type State =
 // the server disagree by a few hundred ms about the moment a slot starts.
 const MIN_REFETCH_GAP_MS = 1500;
 
+// How often the status is asked again while the card is on screen, so the number of people signed
+// up keeps up with others signing up.
+export const POLL_INTERVAL_MS = 60_000;
+
 // Loads the time slot status from the server and keeps it fresh: again when the app comes back to
-// the foreground and when the slot being counted down to starts (a new "next slot" is due).
+// the foreground, when the slot being counted down to starts (a new "next slot" is due), and every
+// minute while the app is in the foreground.
 export function useTimeSlotStatus(clock: Pick<ServerClock, 'now' | 'sync'>) {
   const { now, sync } = clock;
   const [state, setState] = useState<State>({ status: 'loading' });
   const inFlight = useRef(false);
   const lastLoadAt = useRef(0);
+  // The card only mounts with the app on screen; the AppState listener below keeps this current.
+  const appActive = useRef(true);
 
   const applyStatus = useCallback(
     (data: TimeSlotStatus, sentAt: number = Date.now()) => {
@@ -54,11 +61,21 @@ export function useTimeSlotStatus(clock: Pick<ServerClock, 'now' | 'sync'>) {
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (next) => {
+      appActive.current = next === 'active';
       if (next === 'active') {
         reload();
       }
     });
     return () => subscription.remove();
+  }, [reload]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      if (appActive.current) {
+        reload();
+      }
+    }, POLL_INTERVAL_MS);
+    return () => clearInterval(timer);
   }, [reload]);
 
   const nextStartsAt = state.status === 'ready' ? state.data.nextSlot?.startsAt ?? null : null;

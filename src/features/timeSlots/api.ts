@@ -19,6 +19,7 @@ type RawNextSlot = {
   registrable_from: string;
   quota_used: boolean;
   quota_resets_at: string;
+  registered_count: number;
 };
 
 type RawStatus = {
@@ -49,6 +50,7 @@ function toNextSlot(raw: RawNextSlot): NextTimeSlot {
     registrableFrom: toMs(raw.registrable_from),
     quotaUsed: raw.quota_used,
     quotaResetsAt: toMs(raw.quota_resets_at),
+    registeredCount: raw.registered_count,
   };
 }
 
